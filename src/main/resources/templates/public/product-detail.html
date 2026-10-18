@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}">
+    <title th:text="${product.name} + ' - ' + #{app.name}">Product Detail - Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront.css}">
+    <style>
+        .km-gallery-main {
+            position: relative;
+            padding-top: 75%;
+            background-color: #f1f5f9;
+            border-radius: var(--km-radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--km-slate-200);
+        }
+        .km-gallery-img {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            transition: opacity 0.2s ease;
+        }
+        .km-thumb-list {
+            display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; padding-bottom: 4px;
+        }
+        .km-thumb-item {
+            width: 70px; height: 70px; border-radius: var(--km-radius-md);
+            overflow: hidden; cursor: pointer; border: 2px solid transparent; flex-shrink: 0;
+            background: #f1f5f9;
+        }
+        .km-thumb-item.active {
+            border-color: var(--km-primary);
+        }
+        .km-thumb-img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .km-pkg-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 0.875rem;
+            padding: 14px 18px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #ffffff;
+            position: relative;
+        }
+        .km-pkg-card:hover {
+            border-color: #10b981;
+            background: #f0fdf4;
+            transform: translateY(-1px);
+        }
+        .km-pkg-card.selected,
+        .km-pkg-card.active {
+            border-color: #059669 !important;
+            background: #ecfdf5 !important;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.12);
+        }
+        .km-pkg-card .km-pkg-check { display: none; }
+        .km-pkg-card .km-pkg-uncheck { display: inline-block; }
+        .km-pkg-card.selected .km-pkg-check,
+        .km-pkg-card.active .km-pkg-check { display: inline-block; }
+        .km-pkg-card.selected .km-pkg-uncheck,
+        .km-pkg-card.active .km-pkg-uncheck { display: none; }
+
+        /* Modern Quantity Picker Component */
+        .km-qty-group {
+            display: inline-flex;
+            align-items: center;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            background: #ffffff;
+            height: 48px;
+            width: 100%;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .km-qty-group:focus-within {
+            border-color: #059669;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+        }
+        .km-qty-btn {
+            width: 44px;
+            height: 100%;
+            border: none;
+            background: transparent;
+            color: #475569;
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .km-qty-btn:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+        .km-qty-input {
+            border: none !important;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #0f172a;
+            width: 100%;
+            height: 100%;
+            outline: none !important;
+            box-shadow: none !important;
+            -moz-appearance: textfield;
+        }
+        .km-qty-input::-webkit-outer-spin-button,
+        .km-qty-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{layout/navbar :: navbar}"></div>
+
+    <main class="container py-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-muted" th:text="#{nav.home}">Home</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/products}" class="text-decoration-none text-muted" th:text="#{nav.products}">Products</a></li>
+                <li class="breadcrumb-item active text-success fw-bold text-truncate" style="max-width: 300px;" th:text="${product.name}">Product</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4 mb-5">
+            <!-- Left: Gallery -->
+            <div class="col-lg-6">
+                <div class="km-gallery-main shadow-sm">
+                    <img id="mainProductImage" 
+                         th:src="${product.primaryImageUrl != null ? '/uploads/' + product.primaryImageUrl : '/img/placeholder.png'}" 
+                         th:alt="${product.name}" 
+                         class="km-gallery-img">
+                </div>
+
+                <!-- Thumbnails -->
+                <div class="km-thumb-list" th:if="${product.images != null and product.images.size() > 1}">
+                    <div class="km-thumb-item" 
+                         th:each="img, iterStat : ${product.images}" 
+                         th:classappend="${iterStat.index == 0 ? 'active' : ''}"
+                         th:data-img-url="@{/uploads/{url}(url=${img})}">
+                        <img th:src="@{/uploads/{url}(url=${img})}" class="km-thumb-img" alt="Thumbnail">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Details & Purchase Options -->
+            <div class="col-lg-6">
+                <div class="bg-white p-4 rounded-4 border shadow-sm">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="km-product-category" th:text="${product.categoryName}">Category</span>
+                        <button type="button" class="km-fav-btn position-static" th:classappend="${isFavorited ? 'active' : ''}" th:data-product-id="${product.id}" title="Toggle Favorite">
+                            <i class="bi" th:classappend="${isFavorited ? 'bi-heart-fill' : 'bi-heart'}"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="fw-bold text-dark fs-2 mb-2" th:text="${product.name}">Product Name</h1>
+
+                    <!-- Rating & Farmer Link -->
+                    <div class="d-flex flex-wrap align-items-center gap-3 mb-3 pb-3 border-bottom">
+                        <div class="d-flex align-items-center gap-1 text-warning">
+                            <i class="bi bi-star-fill"></i>
+                            <strong class="text-dark" th:text="${ratingSummary.averageRating}">5.0</strong>
+                            <span class="text-secondary small">(&lrm;<span th:text="${ratingSummary.totalReviews}">0</span> reviews)</span>
+                        </div>
+                        <span class="text-secondary">|</span>
+                        <a th:href="@{/farmers/{id}(id=${product.sellerId})}" class="text-success fw-bold text-decoration-none d-flex align-items-center gap-1" title="Visit Farm Profile">
+                            <i class="bi bi-shop"></i> <span th:text="${product.farmName != null ? product.farmName : 'Direct Farm'}">Farm Name</span>
+                        </a>
+                        <span class="text-secondary small d-flex align-items-center gap-1" th:if="${product.farmerName != null or product.sellerUsername != null}">
+                            <i class="bi bi-person text-muted"></i>
+                            <span>Sold by:</span>
+                            <strong class="text-dark" th:text="${product.farmerName != null ? product.farmerName : product.sellerUsername}">Farmer Name</strong>
+                            <span class="text-muted" th:if="${product.sellerUsername != null and (product.farmerName == null or !product.farmerName.equalsIgnoreCase(product.sellerUsername))}" th:text="'(@' + ${product.sellerUsername} + ')'">(@user)</span>
+                        </span>
+                        <span th:if="${product.province != null}" class="badge bg-light text-secondary border">
+                            <i class="bi bi-geo-alt"></i> <span th:text="${product.province}">Province</span>
+                        </span>
+                    </div>
+
+                    <!-- Price & Initial Stock -->
+                    <div class="d-flex align-items-baseline gap-3 mb-4">
+                        <div class="display-6 fw-bold text-dark" id="displayedPrice">
+                            $<span th:text="${product.packages != null and !product.packages.isEmpty() ? product.packages.get(0).price : '0.00'}">0.00</span>
+                        </div>
+                        <span id="displayedStockBadge" class="km-badge" 
+                              th:classappend="${product.packages != null and !product.packages.isEmpty() and product.packages.get(0).availableStock > 0 ? 'km-badge-stock' : 'km-badge-out'}"
+                              th:text="${product.packages != null and !product.packages.isEmpty() and product.packages.get(0).availableStock > 0 ? product.packages.get(0).availableStock + ' in stock' : 'Out of Stock'}">
+                            In Stock
+                        </span>
+                    </div>
+
+                    <!-- Product Description -->
+                    <div class="mb-4 text-secondary" th:text="${product.description}">
+                        Detailed agricultural crop description...
+                    </div>
+
+                    <!-- Package Options Selector -->
+                    <div class="mb-4" th:if="${product.packages != null and !product.packages.isEmpty()}">
+                        <label class="form-label fw-bold small text-uppercase text-secondary mb-2" th:text="#{product.packages}">Available Packaging Options</label>
+                        <div class="d-flex flex-column gap-2">
+                            <div class="km-pkg-card" 
+                                 th:each="pkg, iterStat : ${product.packages}"
+                                 th:classappend="${iterStat.index == 0 ? 'selected active' : ''}"
+                                 th:data-package-id="${pkg.id}"
+                                 th:data-package-price="${pkg.price}"
+                                 th:data-package-available="${pkg.availableStock}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="km-pkg-indicator">
+                                            <i class="bi bi-check-circle-fill text-success fs-5 km-pkg-check"></i>
+                                            <i class="bi bi-circle text-muted fs-5 km-pkg-uncheck"></i>
+                                        </div>
+                                        <div>
+                                            <strong class="text-dark d-block" th:text="${pkg.packageName}">1kg Bag</strong>
+                                            <span class="small text-muted" th:if="${pkg.netWeight != null}">
+                                                <span th:text="${pkg.netWeight}"></span> <span th:text="${pkg.unit}"></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <strong class="text-success fs-5">$<span th:text="${pkg.price}">10.00</span></strong>
+                                        <span class="d-block small text-muted" th:text="${pkg.availableStock > 0 ? pkg.availableStock + ' available' : 'Out of Stock'}"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add to Cart Form -->
+                    <form th:action="@{/cart/add}" method="post" id="addToCartForm">
+                        <!-- Hidden selected package ID -->
+                        <input type="hidden" name="packageId" id="selectedPackageId" 
+                               th:value="${product.packages != null and !product.packages.isEmpty() ? product.packages.get(0).id : ''}">
+
+                        <div class="row g-3 align-items-end mb-3">
+                            <div class="col-sm-5">
+                                <label class="form-label fw-bold small text-secondary mb-1" th:text="#{product.quantity}">Quantity</label>
+                                <div class="km-qty-group">
+                                    <button class="km-qty-btn" type="button" id="btnDetailQtyDec" title="Decrease Quantity"><i class="bi bi-dash"></i></button>
+                                    <input type="number" name="quantity" id="productQuantityInput" class="km-qty-input" value="1" min="1" 
+                                           th:max="${product.packages != null and !product.packages.isEmpty() ? product.packages.get(0).availableStock : 100}">
+                                    <button class="km-qty-btn" type="button" id="btnDetailQtyInc" title="Increase Quantity"><i class="bi bi-plus"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-7">
+                                <div class="w-100" sec:authorize="isAuthenticated()">
+                                    <div th:if="${#authentication.principal.userId == product.sellerId}">
+                                        <button type="button" class="btn btn-secondary w-100 rounded-3 fs-6 disabled d-flex align-items-center justify-content-center gap-2" disabled style="height: 48px; cursor: not-allowed; opacity: 0.85;">
+                                            <i class="bi bi-shop"></i> Your Own Product
+                                        </button>
+                                        <div class="text-danger small mt-1 text-center fw-medium">
+                                            <i class="bi bi-info-circle me-1"></i>Sellers cannot buy their own products
+                                        </div>
+                                    </div>
+                                    <div th:unless="${#authentication.principal.userId == product.sellerId}">
+                                        <button type="submit" id="btnAddToCart" class="km-btn-primary w-100 rounded-3 shadow-sm fw-bold fs-6 d-flex align-items-center justify-content-center gap-2 border-0" 
+                                                style="height: 48px;"
+                                                th:disabled="${product.packages == null or product.packages.isEmpty() or product.packages.get(0).availableStock <= 0}">
+                                            <i class="bi bi-cart-plus-fill fs-5"></i> <span th:text="#{catalog.add_to_cart}">Add to Cart</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="w-100" sec:authorize="isAnonymous()">
+                                    <a th:href="@{/login}" class="km-btn-primary w-100 rounded-3 shadow-sm fw-bold fs-6 d-flex align-items-center justify-content-center gap-2 border-0" style="height: 48px;">
+                                        <i class="bi bi-box-arrow-in-right fs-5"></i> <span>Sign In to Buy</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews & Rating Summary Section -->
+        <section class="bg-white p-4 rounded-4 border shadow-sm mb-5">
+            <h3 class="fw-bold text-dark fs-4 mb-4 pb-2 border-bottom d-flex align-items-center gap-2">
+                <i class="bi bi-chat-quote-fill text-success"></i>
+                <span th:text="#{product.customer_reviews}">Customer Reviews</span>
+            </h3>
+
+            <!-- Review Stats -->
+            <div class="row align-items-center mb-4 p-3 bg-light rounded-3">
+                <div class="col-md-3 text-center border-end">
+                    <div class="display-4 fw-bold text-dark" th:text="${ratingSummary.averageRating}">5.0</div>
+                    <div class="text-warning fs-5">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-half"></i>
+                    </div>
+                    <div class="small text-muted mt-1" th:text="${ratingSummary.totalReviews} + ' verified reviews'">0 verified reviews</div>
+                </div>
+                <div class="col-md-9 px-md-4">
+                    <p class="small text-secondary mb-0">Only customers with delivered orders for this produce can submit verified reviews. All ratings and feedback reflect authentic Cambodian farming purchases.</p>
+                </div>
+            </div>
+
+            <!-- Review List -->
+            <div class="d-flex flex-column gap-3" th:if="${reviews != null and !reviews.isEmpty()}">
+                <div class="p-3 border rounded-3" th:each="r : ${reviews.content}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-circle p-2">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <strong class="text-dark" th:text="${r.user.username}">Buyer</strong>
+                            <span class="badge bg-light text-success border border-success-subtle small">
+                                <i class="bi bi-patch-check-fill"></i> Verified Buyer
+                            </span>
+                        </div>
+                        <div class="text-warning small">
+                            <span th:each="star : ${#numbers.sequence(1, r.rating)}"><i class="bi bi-star-fill"></i></span>
+                        </div>
+                    </div>
+                    <p class="text-secondary mb-1" th:text="${r.comment}">Great fresh produce!</p>
+                </div>
+            </div>
+
+            <div class="text-center py-4 text-secondary" th:if="${reviews == null or reviews.isEmpty()}">
+                <i class="bi bi-chat-dots display-4 text-muted"></i>
+                <p class="mt-2 mb-0" th:text="#{product.no_reviews_yet}">No reviews yet for this harvest.</p>
+            </div>
+        </section>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/js/product-detail.js}"></script>
+    <script th:src="@{/js/favorites.js}"></script>
+</body>
+</html>

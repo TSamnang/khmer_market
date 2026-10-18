@@ -1,0 +1,128 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{farmer.edit_profile} + ' - ' + #{app.name}">Farm Profile - Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront.css}">
+</head>
+<body>
+    <div th:replace="~{layout/navbar :: navbar}"></div>
+
+    <main class="container py-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a th:href="@{/farmer/dashboard}" class="text-decoration-none text-muted" th:text="#{farmer.dashboard}">Dashboard</a></li>
+                <li class="breadcrumb-item active text-success fw-bold" aria-current="page" th:text="#{farmer.edit_profile}">Farm Profile</li>
+            </ol>
+        </nav>
+
+        <h1 class="fw-bold fs-2 text-dark mb-4 d-flex align-items-center gap-2">
+            <i class="bi bi-shop text-success"></i>
+            <span th:text="#{farmer.edit_profile}">Farm Profile & Story</span>
+        </h1>
+
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}">Success</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}">Error</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="bg-white p-4 p-md-5 rounded-4 border shadow-sm">
+                    <form th:action="@{/farmer/profile}" method="post" enctype="multipart/form-data" th:object="${profileDto}">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold" th:text="#{farmer.farm_name}">Farm / Business Name</label>
+                                <input type="text" th:field="*{farmName}" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Farmer Representative Name</label>
+                                <input type="text" th:field="*{farmerName}" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold" th:text="#{address.phone}">Contact Phone</label>
+                                <input type="text" th:field="*{phone}" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold" th:text="#{address.province}">Province</label>
+                                <select th:field="*{province}" class="form-select" required>
+                                    <option value="Battambang">Battambang</option>
+                                    <option value="Kampot">Kampot</option>
+                                    <option value="Siem Reap">Siem Reap</option>
+                                    <option value="Kandal">Kandal</option>
+                                    <option value="Pursat">Pursat</option>
+                                    <option value="Takeo">Takeo</option>
+                                    <option value="Kampong Cham">Kampong Cham</option>
+                                    <option value="Phnom Penh">Phnom Penh</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Farm Location / Village / Commune</label>
+                            <input type="text" th:field="*{address}" class="form-control" placeholder="e.g. Prey Chrouk Village, Ek Phnom District">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold" th:text="#{farmer.farm_bio}">Farm Story & Practices</label>
+                            <textarea th:field="*{farmDescription}" class="form-control" rows="4" placeholder="Tell customers about your farming background, organic practices, soil health, and seasonal harvests..."></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold">Farm Cover / Profile Photo</label>
+                            <input type="file" name="farmImageFile" class="form-control" accept="image/jpeg,image/png,image/webp">
+                            <div class="form-text small">Accepted formats: JPG, PNG, WEBP. Max 5MB.</div>
+                        </div>
+
+                        <button type="submit" class="km-btn-primary px-4 py-2">
+                            <i class="bi bi-check-lg me-1"></i> Save Farm Profile
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Profile Preview Card -->
+            <div class="col-lg-4">
+                <div class="bg-white p-4 rounded-4 border shadow-sm text-center">
+                    <h6 class="fw-bold text-secondary text-uppercase small mb-3">Profile Photo Preview</h6>
+
+                    <div class="mb-3">
+                        <img th:if="${profile.farmImage != null}" th:src="@{/uploads/{img}(img=${profile.farmImage})}" class="rounded-circle object-fit-cover border border-4 border-success-subtle shadow" style="width: 130px; height: 130px;" alt="Farm Photo">
+                        <div th:unless="${profile.farmImage != null}" class="rounded-circle bg-success-subtle text-success border border-4 border-success-subtle d-inline-flex align-items-center justify-content-center shadow" style="width: 130px; height: 130px; font-size: 3rem;">
+                            <i class="bi bi-shop"></i>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold text-dark mb-1" th:text="${profile.farmName != null ? profile.farmName : 'Farm Name'}">Farm Name</h5>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle small mb-3">
+                        <i class="bi bi-patch-check-fill"></i> Verified Cambodian Farm
+                    </span>
+
+                    <div class="text-secondary small text-start p-3 bg-light rounded-3 border">
+                        <div class="mb-1"><i class="bi bi-geo-alt text-success me-1"></i> <span th:text="${profile.province}">Province</span></div>
+                        <div class="mb-1"><i class="bi bi-person text-success me-1"></i> <span th:text="${profile.farmerName}">Farmer</span></div>
+                        <div><i class="bi bi-telephone text-success me-1"></i> <span th:text="${profile.phone}">Phone</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

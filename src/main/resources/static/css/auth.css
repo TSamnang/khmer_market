@@ -1,0 +1,346 @@
+@import url('kantumruy-pro.css');
+
+/* Auth Pages Styling - Modern, Clean, Accessible */
+:root {
+    --primary-color: #047857;
+    --primary-hover: #065f46;
+    --bg-page: #f8fafc;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #cbd5e1;
+    --card-bg: #ffffff;
+}
+
+body {
+    background-color: var(--bg-page);
+    font-family: 'Kantumruy Pro', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-main);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-header {
+    padding: 20px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.auth-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--text-main);
+}
+
+.auth-logo-badge {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #047857, #10b981);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+}
+
+.lang-switch-btn {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: #ffffff;
+    transition: all 0.15s ease;
+}
+
+.lang-switch-btn:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.auth-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.auth-card {
+    background: var(--card-bg);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 440px;
+    padding: 36px;
+}
+
+.auth-card-wide {
+    max-width: 600px;
+}
+
+.auth-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: var(--text-main);
+}
+
+.auth-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0 0 24px 0;
+    line-height: 1.5;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #334155;
+}
+
+.form-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.input-password-wrapper {
+    position: relative;
+    display: flex;
+}
+
+.input-password-wrapper .form-input {
+    padding-right: 70px;
+}
+
+.btn-toggle-password {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.btn-toggle-password:hover {
+    color: var(--primary-color);
+}
+
+.form-error {
+    font-size: 13px;
+    color: #dc2626;
+    margin-top: 4px;
+}
+
+.alert-box {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-danger {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.alert-success {
+    background-color: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.alert-warning {
+    background-color: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.btn-submit {
+    width: 100%;
+    background-color: var(--primary-color);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.btn-submit:hover {
+    background-color: var(--primary-hover);
+}
+
+.auth-footer-links {
+    margin-top: 24px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.auth-footer-links a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-footer-links a:hover {
+    text-decoration: underline;
+}
+
+/* Role Selector Tabs */
+.role-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.role-tab-label {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    position: relative;
+    user-select: none;
+}
+
+.role-tab-label:hover {
+    border-color: #10b981;
+    background-color: #f0fdf4;
+}
+
+.role-tab-label.active,
+.role-tab-label:has(input[type="radio"]:checked) {
+    border-color: var(--primary-color) !important;
+    background-color: #ecfdf5 !important;
+    box-shadow: 0 0 0 2px var(--primary-color), 0 4px 12px rgba(4, 120, 87, 0.12) !important;
+}
+
+.role-tab-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.role-tab-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.role-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+    transition: all 0.2s ease;
+}
+
+.role-tab-label.active .role-icon,
+.role-tab-label:has(input[type="radio"]:checked) .role-icon {
+    background: var(--primary-color);
+    color: #ffffff;
+}
+
+.role-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-main);
+}
+
+.role-tab-label.active .role-title,
+.role-tab-label:has(input[type="radio"]:checked) .role-title {
+    color: var(--primary-color);
+}
+
+/* Radio Indicator Badge */
+.role-radio-badge {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.role-radio-badge svg {
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.2s ease;
+}
+
+.role-tab-label.active .role-radio-badge,
+.role-tab-label:has(input[type="radio"]:checked) .role-radio-badge {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+}
+
+.role-tab-label.active .role-radio-badge svg,
+.role-tab-label:has(input[type="radio"]:checked) .role-radio-badge svg {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.role-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.role-tab-label.active .role-desc,
+.role-tab-label:has(input[type="radio"]:checked) .role-desc {
+    color: #065f46;
+}

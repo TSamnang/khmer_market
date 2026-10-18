@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Fulfill Order ' + ${order.orderNumber} + ' - ' + #{app.name}">Fulfill Order - Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront.css}">
+</head>
+<body>
+    <div th:replace="~{layout/navbar :: navbar}"></div>
+
+    <main class="container py-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a th:href="@{/farmer/dashboard}" class="text-decoration-none text-muted" th:text="#{farmer.dashboard}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/farmer/orders}" class="text-decoration-none text-muted" th:text="#{farmer.orders_to_fulfil}">Orders</a></li>
+                <li class="breadcrumb-item active text-success fw-bold" aria-current="page" th:text="${order.orderNumber}">KM-XXXX</li>
+            </ol>
+        </nav>
+
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}">Success</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}">Error</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Order Header Card -->
+        <div class="bg-white rounded-4 border shadow-sm p-4 mb-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center pb-3 border-bottom mb-4 gap-2">
+                <div>
+                    <h1 class="fw-bold fs-3 text-dark mb-1 d-flex align-items-center gap-2">
+                        <i class="bi bi-box-seam text-success"></i>
+                        <span th:text="${order.orderNumber}">KM-XXXX</span>
+                    </h1>
+                    <span class="text-secondary small">Received on <span th:text="${#temporals.format(order.createdAt, 'dd MMMM yyyy HH:mm')}">Date</span></span>
+                </div>
+                <div>
+                    <span class="km-badge km-badge-pending fs-6 py-2 px-3" th:if="${order.status.value == 'pending'}">Pending Confirmation</span>
+                    <span class="km-badge km-badge-confirmed fs-6 py-2 px-3" th:if="${order.status.value == 'confirmed'}">Confirmed & Ready to Ship</span>
+                    <span class="km-badge km-badge-shipped fs-6 py-2 px-3" th:if="${order.status.value == 'shipped'}">Shipped / In Transit</span>
+                    <span class="km-badge km-badge-delivered fs-6 py-2 px-3" th:if="${order.status.value == 'delivered'}">Delivered & Completed</span>
+                    <span class="km-badge km-badge-cancelled fs-6 py-2 px-3" th:if="${order.status.value == 'cancelled'}">Cancelled</span>
+                </div>
+            </div>
+
+            <!-- Fulfillment Workflow Action Buttons -->
+            <div class="d-flex flex-wrap align-items-center gap-3 pt-2">
+                <!-- If PENDING: Farmer can confirm order -->
+                <form th:if="${order.status.value == 'pending'}" th:action="@{/farmer/orders/{id}/confirm(id=${order.id})}" method="post">
+                    <button type="submit" class="btn btn-info text-white rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
+                        <i class="bi bi-check2-circle fs-5"></i>
+                        <span>Confirm Order</span>
+                    </button>
+                </form>
+
+                <!-- If CONFIRMED: Farmer can ship order -->
+                <form th:if="${order.status.value == 'confirmed'}" th:action="@{/farmer/orders/{id}/ship(id=${order.id})}" method="post">
+                    <button type="submit" class="km-btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2 border-0">
+                        <i class="bi bi-truck fs-5"></i>
+                        <span>Mark as Shipped</span>
+                    </button>
+                </form>
+
+                <!-- If PENDING or CONFIRMED: Farmer can cancel with reason -->
+                <form th:if="${order.status.value == 'pending' or order.status.value == 'confirmed'}" th:action="@{/farmer/orders/{id}/cancel(id=${order.id})}" method="post">
+                    <input type="hidden" name="reason" value="Cancelled by farmer (out of harvest / inventory issue)">
+                    <button type="submit" class="btn btn-outline-danger rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2" onclick="return confirm('Cancel this order and restore stock?');">
+                        <i class="bi bi-x-circle fs-5"></i>
+                        <span>Cancel Order</span>
+                    </button>
+                </form>
+
+                <!-- If SHIPPED: Status message -->
+                <div th:if="${order.status.value == 'shipped'}" class="alert alert-info py-2 px-3 mb-0 small">
+                    <i class="bi bi-truck me-1"></i> Package is currently in transit. The customer will confirm delivery once received.
+                </div>
+
+                <!-- If DELIVERED: Status message -->
+                <div th:if="${order.status.value == 'delivered'}" class="alert alert-success py-2 px-3 mb-0 small">
+                    <i class="bi bi-check2-all me-1"></i> Delivery completed. Customer has verified receipt.
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <!-- Customer Delivery Details -->
+            <div class="col-md-6">
+                <div class="bg-white rounded-4 border shadow-sm p-4 h-100">
+                    <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                        <i class="bi bi-geo-alt text-success me-1"></i> Customer Shipping Destination
+                    </h5>
+                    <div th:if="${order.address != null}" class="text-secondary">
+                        <strong class="text-dark fs-6 d-block mb-1" th:text="${order.address.name}">Recipient</strong>
+                        <div class="mb-1"><i class="bi bi-telephone text-success me-1"></i> <span th:text="${order.address.phone}">Phone</span></div>
+                        <div><i class="bi bi-pin-map text-success me-1"></i> <span th:text="${order.address.province}">Province</span>, <span th:text="${order.address.address}">Street / Village</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Account Details -->
+            <div class="col-md-6">
+                <div class="bg-white rounded-4 border shadow-sm p-4 h-100">
+                    <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                        <i class="bi bi-person text-success me-1"></i> Buyer Account Info
+                    </h5>
+                    <div class="text-secondary small">
+                        <div><strong class="text-dark">Username:</strong> <span th:text="${order.buyer.username}">buyer</span></div>
+                        <div><strong class="text-dark">Email:</strong> <span th:text="${order.buyer.email}">buyer@market.kh</span></div>
+                        <div><strong class="text-dark">Full Name:</strong> <span th:text="${order.buyer.fullName != null ? order.buyer.fullName : 'N/A'}">Full Name</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ordered Items Table -->
+        <div class="bg-white rounded-4 border shadow-sm p-4 mb-4">
+            <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                <i class="bi bi-basket2 text-success me-1"></i> Items to Pack & Ship
+            </h5>
+
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light small text-uppercase text-secondary">
+                        <tr>
+                            <th>Crop / Produce</th>
+                            <th>Packaging Tier</th>
+                            <th class="text-center">Quantity</th>
+                            <th class="text-end">Unit Price</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item : ${order.items}">
+                            <td>
+                                <strong class="text-dark" th:text="${item.productPackage != null ? item.productPackage.product.name : 'Crop'}">Produce</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-secondary border" th:text="${item.productPackage != null ? item.productPackage.packageName : ''}">1kg</span>
+                            </td>
+                            <td class="text-center fw-bold fs-6 text-dark" th:text="${item.quantity}">1</td>
+                            <td class="text-end">$<span th:text="${item.unitPrice}">10.00</span></td>
+                            <td class="text-end fw-bold text-dark">$<span th:text="${item.subtotal}">10.00</span></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="fw-bold fs-6">
+                            <td colspan="4" class="text-end">Order Total:</td>
+                            <td class="text-end text-success fs-5">$<span th:text="${order.totalAmount}">10.00</span></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

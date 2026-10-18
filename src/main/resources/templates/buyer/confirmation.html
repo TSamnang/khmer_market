@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{checkout.confirmation_title} + ' - ' + #{app.name}">Order Confirmation - Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront.css}">
+    <style>
+        /* Coffee Shop / Thermal Receipt Design */
+        .receipt-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .receipt-paper {
+            background-color: #ffffff;
+            color: #1a1a1a;
+            width: 100%;
+            max-width: 440px;
+            padding: 34px 28px 28px;
+            position: relative;
+            font-family: 'Courier New', Courier, 'Kantumruy Pro', monospace;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.09), 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+        }
+
+        /* Serrated / Perforated Thermal Cut Edge */
+        .receipt-jagged-top {
+            position: absolute;
+            top: -7px;
+            left: 0;
+            right: 0;
+            height: 7px;
+            background: linear-gradient(135deg, transparent 4px, #ffffff 4px) 0 0,
+                        linear-gradient(-135deg, transparent 4px, #ffffff 4px) 0 0;
+            background-repeat: repeat-x;
+            background-size: 8px 8px;
+            filter: drop-shadow(0 -1px 1px rgba(0,0,0,0.05));
+        }
+
+        .receipt-jagged-bottom {
+            position: absolute;
+            bottom: -7px;
+            left: 0;
+            right: 0;
+            height: 7px;
+            background: linear-gradient(45deg, transparent 4px, #ffffff 4px) 0 0,
+                        linear-gradient(-45deg, transparent 4px, #ffffff 4px) 0 0;
+            background-repeat: repeat-x;
+            background-size: 8px 8px;
+            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.05));
+        }
+
+        .receipt-divider {
+            border-top: 1.5px dashed #475569;
+            margin: 12px 0;
+        }
+
+        .receipt-double-divider {
+            border-top: 3px double #1e293b;
+            margin: 14px 0;
+        }
+
+        .receipt-dot-divider {
+            border-top: 1.5px dotted #64748b;
+            margin: 10px 0;
+        }
+
+        .receipt-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+        }
+
+        .receipt-stamp {
+            border: 2px solid #16a34a;
+            color: #16a34a;
+            padding: 3px 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: inline-block;
+            border-radius: 4px;
+            transform: rotate(-3deg);
+            font-size: 0.8rem;
+            background-color: #f0fdf4;
+        }
+
+        .receipt-barcode {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            height: 38px;
+            margin: 6px 0;
+        }
+
+        .barcode-bar {
+            display: inline-block;
+            background-color: #111827;
+            height: 100%;
+        }
+
+        /* Print Media Styling: ONLY print receipt slip cleanly */
+        @media print {
+            body, html {
+                background: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            body * {
+                visibility: hidden;
+            }
+
+            .km-receipt-printable-area, .km-receipt-printable-area * {
+                visibility: visible;
+            }
+
+            .km-receipt-printable-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .no-print, header, nav, footer, .km-navbar, .km-announcement-bar, .breadcrumb, .btn {
+                display: none !important;
+            }
+
+            .receipt-paper {
+                box-shadow: none !important;
+                border: 1px solid #777 !important;
+                width: 100% !important;
+                max-width: 380px !important;
+                margin: 0 auto !important;
+                page-break-after: always;
+                padding: 16px 12px !important;
+            }
+
+            .receipt-wrapper {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .receipt-jagged-top, .receipt-jagged-bottom {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="no-print">
+        <div th:replace="~{layout/navbar :: navbar}"></div>
+    </div>
+
+    <main class="container py-4">
+        <!-- Success Hero Banner (Hidden in print) -->
+        <div class="text-center mb-4 no-print">
+            <div class="d-inline-flex align-items-center justify-content-center bg-success-subtle text-success rounded-circle p-3 mb-2" style="width: 72px; height: 72px; font-size: 2.3rem;">
+                <i class="bi bi-check2-circle"></i>
+            </div>
+            <h1 class="fw-bold text-dark fs-2 mb-1" th:text="#{checkout.confirmation_title}">Thank You for Your Order!</h1>
+            <p class="text-secondary small mb-3" th:text="#{checkout.confirmation_subtitle}">Your agricultural order has been successfully placed directly with Cambodian farmers.</p>
+
+            <!-- Flash Messages -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show rounded-3 mb-3 d-inline-block px-4 py-2" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}">Success</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-3 mb-3 d-inline-block px-4 py-2" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${errorMessage}">Error</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Action Buttons: Rate & Review, Print Receipt, View Orders, Continue Shopping -->
+            <div class="d-flex justify-content-center align-items-center flex-wrap gap-2 mb-2">
+                <button type="button" class="btn btn-warning btn-lg px-4 py-2 shadow-sm d-inline-flex align-items-center gap-2 text-dark fw-bold"
+                        data-bs-toggle="modal" data-bs-target="#reviewPromptModal"
+                        th:if="${hasUnreviewedItems}">
+                    <i class="bi bi-star-fill text-dark fs-5"></i>
+                    <span>Rate & Review Produce / វាយតម្លៃ</span>
+                </button>
+                <button type="button" class="btn btn-dark btn-lg px-4 py-2 shadow-sm d-inline-flex align-items-center gap-2" onclick="window.print()">
+                    <i class="bi bi-printer-fill fs-5"></i>
+                    <span>Print Receipt / បោះពុម្ពវិក្កយបត្រ</span>
+                </button>
+                <a th:href="@{/buyer/orders}" class="btn btn-outline-success btn-lg px-4 py-2">
+                    <i class="bi bi-receipt me-1"></i> <span th:text="#{nav.my_orders}">View My Orders</span>
+                </a>
+                <a th:href="@{/products}" class="btn btn-outline-secondary btn-lg px-4 py-2">
+                    <i class="bi bi-basket2 me-1"></i> <span th:text="#{cart.continue_shopping}">Continue Shopping</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Orders Area (Printable Coffee Shop Receipts) -->
+        <div class="km-receipt-printable-area">
+            <div class="d-flex flex-column gap-5 align-items-center">
+                <div th:each="order : ${orders}" class="w-100" style="max-width: 440px;">
+                    <!-- Individual Print Bar on top of each slip for web view -->
+                    <div class="d-flex justify-content-between align-items-center mb-2 no-print small text-muted px-1">
+                        <span><i class="bi bi-receipt-cutoff me-1 text-success"></i> Coffee Shop Thermal Receipt</span>
+                        <button type="button" class="btn btn-sm btn-outline-dark py-1 px-2 d-inline-flex align-items-center gap-1" onclick="window.print()">
+                            <i class="bi bi-printer"></i> Print
+                        </button>
+                    </div>
+
+                    <!-- Thermal Paper Receipt Card -->
+                    <div class="receipt-paper">
+                        <!-- Perforated top cut edge -->
+                        <div class="receipt-jagged-top"></div>
+
+                        <!-- 1. Coffee Shop / Market Header -->
+                        <div class="text-center">
+                            <div class="mb-1">
+                                <i class="bi bi-cup-hot-fill text-success fs-2 me-1"></i>
+                                <i class="bi bi-flower1 text-warning fs-3"></i>
+                            </div>
+                            <h4 class="receipt-title text-uppercase mb-0 text-dark" th:text="${storeConfig != null and storeConfig.storeName != null ? storeConfig.storeName : 'Angkor Organic Mart'}">ANGKOR ORGANIC MART</h4>
+                            <div class="small text-muted text-uppercase" style="font-size: 0.76rem; letter-spacing: 1px;">SPECIALTY FARM HARVEST & CAFE</div>
+                            <div class="small text-secondary" style="font-size: 0.74rem;">Siem Reap & Phnom Penh, Cambodia</div>
+                            <div class="small text-secondary" style="font-size: 0.74rem;">
+                                Tel: <span th:text="${storeConfig != null and storeConfig.supportPhone != null ? storeConfig.supportPhone : '+855 (0) 23 888 999'}">+855 23 888 999</span>
+                            </div>
+                            <div class="small text-muted" style="font-size: 0.72rem;">VAT/TIN: KHM-902418-POS • REG #01</div>
+                        </div>
+
+                        <div class="receipt-divider"></div>
+
+                        <!-- Receipt Subheading & Status Stamp -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold text-dark text-uppercase" style="font-size: 0.95rem; letter-spacing: 0.5px;">OFFICIAL RECEIPT</div>
+                                <div class="small text-muted" style="font-size: 0.75rem;">វិក្កយបត្រទូទាត់ប្រាក់</div>
+                            </div>
+                            <div>
+                                <span class="receipt-stamp" th:if="${order.status.value == 'confirmed' or (order.primaryPayment != null and order.primaryPayment.paymentStatus.value == 'paid')}">
+                                    <i class="bi bi-check-circle-fill me-1"></i> PAID
+                                </span>
+                                <span class="badge bg-warning-subtle text-dark border border-warning px-2 py-1 small fw-bold" th:unless="${order.status.value == 'confirmed' or (order.primaryPayment != null and order.primaryPayment.paymentStatus.value == 'paid')}">
+                                    PENDING
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="receipt-dot-divider"></div>
+
+                        <!-- 2. Transaction Meta -->
+                        <div class="small" style="font-size: 0.8rem; line-height: 1.45;">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-secondary">RECEIPT NO:</span>
+                                <strong class="text-dark" th:text="${order.orderNumber}">KM-20261017-XXXX</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-secondary">DATE/TIME:</span>
+                                <span class="text-dark" th:text="${#temporals.format(order.createdAt != null ? order.createdAt : T(java.time.LocalDateTime).now(), 'dd-MMM-yyyy HH:mm:ss')}">17-Oct-2026 15:30:00</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-secondary">CASHIER:</span>
+                                <span class="text-dark">SYSTEM AUTO-POS #01</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-secondary">CUSTOMER:</span>
+                                <span class="text-dark fw-bold" th:text="${order.buyer != null ? (order.buyer.fullName != null ? order.buyer.fullName : order.buyer.username) : 'Valued Customer'}">Customer</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-secondary">FARM PRODUCER:</span>
+                                <strong class="text-success text-truncate ms-2" style="max-width: 220px;" th:text="${order.sellerFarmName}">Angkor Farm</strong>
+                            </div>
+                            <div class="d-flex justify-content-between" th:if="${order.address != null}">
+                                <span class="text-secondary">DELIVERY TO:</span>
+                                <span class="text-dark text-truncate ms-2" style="max-width: 220px;" th:text="${order.address.name} + ' (' + ${order.address.phone} + ')'">Recipient</span>
+                            </div>
+                        </div>
+
+                        <div class="receipt-divider"></div>
+
+                        <!-- 3. Itemized List (Classic POS Table) -->
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between fw-bold text-uppercase pb-1 border-bottom border-dark" style="font-size: 0.78rem;">
+                                <span>ITEM DESCRIPTION</span>
+                                <div class="d-flex gap-3">
+                                    <span style="min-width: 24px;" class="text-center">QTY</span>
+                                    <span style="min-width: 50px;" class="text-end">PRICE</span>
+                                    <span style="min-width: 60px;" class="text-end">TOTAL</span>
+                                </div>
+                            </div>
+
+                            <div th:each="item : ${order.items}" class="py-2 border-bottom border-secondary-subtle" style="font-size: 0.8rem;">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="pe-2">
+                                        <div class="fw-bold text-dark" th:text="${item.produceName}">Organic Jasmine Rice</div>
+                                        <div class="text-muted" style="font-size: 0.72rem;" th:text="'Pkg: ' + ${item.packageName}">1kg Pack</div>
+                                    </div>
+                                    <div class="d-flex gap-3 text-dark text-nowrap pt-1">
+                                        <span style="min-width: 24px;" class="text-center" th:text="${item.quantity}">1</span>
+                                        <span style="min-width: 50px;" class="text-end">$<span th:text="${#numbers.formatDecimal(item.unitPrice, 1, 'COMMA', 2, 'POINT')}">10.00</span></span>
+                                        <span style="min-width: 60px;" class="text-end fw-bold text-dark">$<span th:text="${#numbers.formatDecimal(item.subtotal, 1, 'COMMA', 2, 'POINT')}">10.00</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Totals & Currency Conversion -->
+                        <div class="pt-1" style="font-size: 0.82rem;">
+                            <div class="d-flex justify-content-between py-1">
+                                <span class="text-secondary text-uppercase">ITEMS SUBTOTAL:</span>
+                                <strong class="text-dark">$<span th:text="${#numbers.formatDecimal(order.subtotal, 1, 'COMMA', 2, 'POINT')}">10.00</span></strong>
+                            </div>
+                            <div class="d-flex justify-content-between py-1">
+                                <span class="text-secondary text-uppercase">SHIPPING / DELIVERY:</span>
+                                <span th:if="${order.shippingFee == null or order.shippingFee.compareTo(T(java.math.BigDecimal).ZERO) == 0}" class="text-success fw-bold">FREE ($0.00)</span>
+                                <strong th:unless="${order.shippingFee == null or order.shippingFee.compareTo(T(java.math.BigDecimal).ZERO) == 0}" class="text-dark">$<span th:text="${#numbers.formatDecimal(order.shippingFee, 1, 'COMMA', 2, 'POINT')}">1.50</span></strong>
+                            </div>
+
+                            <div class="receipt-double-divider"></div>
+
+                            <div class="d-flex justify-content-between align-items-center py-1">
+                                <span class="fw-bold fs-6 text-dark text-uppercase">TOTAL AMOUNT (USD):</span>
+                                <span class="fw-bold fs-5 text-dark">$<span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 2, 'POINT')}">11.50</span></span>
+                            </div>
+
+                            <!-- Dual Currency in Cambodian Riel (៛) -->
+                            <div class="d-flex justify-content-between align-items-center py-1" th:if="${storeConfig != null and storeConfig.exchangeRateUsdKhr != null}">
+                                <span class="text-success fw-bold small text-uppercase">TOTAL IN KHR (សរុបជាប្រាក់រៀល):</span>
+                                <strong class="text-success fs-6">
+                                    <span th:text="${#numbers.formatDecimal(order.totalAmount.multiply(storeConfig.exchangeRateUsdKhr), 1, 'COMMA', 0, 'POINT')}">47,150</span> ៛
+                                </strong>
+                            </div>
+
+                            <div class="small text-muted text-end" style="font-size: 0.72rem;" th:if="${storeConfig != null and storeConfig.exchangeRateUsdKhr != null}">
+                                Rate: 1 USD = <span th:text="${#numbers.formatDecimal(storeConfig.exchangeRateUsdKhr, 1, 'COMMA', 0, 'POINT')}">4,100</span> KHR
+                            </div>
+                        </div>
+
+                        <div class="receipt-divider"></div>
+
+                        <!-- 5. Payment Tendered Details -->
+                        <div class="small" style="font-size: 0.78rem; line-height: 1.5;">
+                            <div class="d-flex justify-content-between" th:if="${order.primaryPayment != null}">
+                                <span class="text-secondary text-uppercase">PAYMENT METHOD:</span>
+                                <strong class="text-dark text-uppercase" th:text="${order.primaryPayment.paymentMethod.displayName}">ACCOUNT BALANCE</strong>
+                            </div>
+                            <div class="d-flex justify-content-between" th:if="${order.primaryPayment != null and order.primaryPayment.transactionId != null}">
+                                <span class="text-secondary text-uppercase">TRANSACTION REF:</span>
+                                <code class="text-dark fw-bold" th:text="${order.primaryPayment.transactionId}">BAL-17922243</code>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-secondary text-uppercase">PAYMENT STATUS:</span>
+                                <strong class="text-success text-uppercase" th:if="${order.status.value == 'confirmed' or (order.primaryPayment != null and order.primaryPayment.paymentStatus.value == 'paid')}">
+                                    PAID IN FULL / បានទូទាត់រួចរាល់
+                                </strong>
+                                <strong class="text-warning text-uppercase" th:unless="${order.status.value == 'confirmed' or (order.primaryPayment != null and order.primaryPayment.paymentStatus.value == 'paid')}">
+                                    PENDING VERIFICATION
+                                </strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-secondary text-uppercase">CHANGE DUE:</span>
+                                <span class="text-dark">$0.00</span>
+                            </div>
+                        </div>
+
+                        <!-- 6. Simulated POS Thermal Barcode -->
+                        <div class="text-center my-3">
+                            <div class="receipt-barcode">
+                                <span class="barcode-bar" style="width: 2px;"></span>
+                                <span class="barcode-bar" style="width: 4px;"></span>
+                                <span class="barcode-bar" style="width: 1px;"></span>
+                                <span class="barcode-bar" style="width: 3px;"></span>
+                                <span class="barcode-bar" style="width: 1px;"></span>
+                                <span class="barcode-bar" style="width: 5px;"></span>
+                                <span class="barcode-bar" style="width: 2px;"></span>
+                                <span class="barcode-bar" style="width: 3px;"></span>
+                                <span class="barcode-bar" style="width: 1px;"></span>
+                                <span class="barcode-bar" style="width: 4px;"></span>
+                                <span class="barcode-bar" style="width: 2px;"></span>
+                                <span class="barcode-bar" style="width: 5px;"></span>
+                                <span class="barcode-bar" style="width: 1px;"></span>
+                                <span class="barcode-bar" style="width: 3px;"></span>
+                                <span class="barcode-bar" style="width: 2px;"></span>
+                                <span class="barcode-bar" style="width: 4px;"></span>
+                                <span class="barcode-bar" style="width: 1px;"></span>
+                                <span class="barcode-bar" style="width: 3px;"></span>
+                                <span class="barcode-bar" style="width: 2px;"></span>
+                                <span class="barcode-bar" style="width: 4px;"></span>
+                                <span class="barcode-bar" style="width: 1px;"></span>
+                                <span class="barcode-bar" style="width: 3px;"></span>
+                                <span class="barcode-bar" style="width: 5px;"></span>
+                                <span class="barcode-bar" style="width: 2px;"></span>
+                                <span class="barcode-bar" style="width: 1px;"></span>
+                                <span class="barcode-bar" style="width: 4px;"></span>
+                                <span class="barcode-bar" style="width: 2px;"></span>
+                            </div>
+                            <div class="small text-muted font-monospace" style="letter-spacing: 2px; font-size: 0.75rem;" th:text="${order.orderNumber}">KM-20261017-8AI7VM</div>
+                        </div>
+
+                        <div class="receipt-divider"></div>
+
+                        <!-- 7. Coffee Shop / Market Footer Message -->
+                        <div class="text-center text-secondary small" style="font-size: 0.74rem; line-height: 1.45;">
+                            <div class="fw-bold text-dark text-uppercase">*** THANK YOU FOR SUPPORTING US! ***</div>
+                            <div class="text-success fw-bold">សូមអរគុណចំពោះការគាំទ្រកសិផលធម្មជាតិខ្មែរ!</div>
+                            <div class="text-muted mt-1">100% Direct from Local Farming Families</div>
+                            <div>Please keep this receipt for order tracking & delivery</div>
+                            <div class="text-muted mt-1 font-monospace" style="font-size: 0.7rem;">GUEST WI-FI: AngkorMart_Free | PASS: fresh2026</div>
+                            <div class="text-muted font-monospace" style="font-size: 0.68rem;">www.khmermarket.com</div>
+                        </div>
+
+                        <!-- Perforated bottom cut edge -->
+                        <div class="receipt-jagged-bottom"></div>
+                    </div>
+
+                    <!-- KHQR Dynamic Scan Box (shown only if KHQR payment was chosen) -->
+                    <div th:each="payment : ${order.payments}" th:if="${payment.paymentMethod.value == 'khqr' and payment.paymentStatus.value == 'pending'}" class="mt-3 p-3 bg-white rounded-3 border shadow-sm text-center no-print">
+                        <h6 class="fw-bold text-dark mb-2">
+                            <i class="bi bi-qr-code text-warning me-1"></i> Scan with Bakong or Any Banking App
+                        </h6>
+                        <img th:src="@{/api/payments/khqr/qr(orderNumber=${order.orderNumber})}" 
+                             alt="Bakong KHQR Code" 
+                             class="img-fluid rounded-3 border p-1 shadow-sm mb-2" style="max-width: 160px;">
+                        <p class="small text-secondary mb-2">Scan with ABA, Bakong, Acleda, or Wing to complete payment.</p>
+                        <a th:href="@{/dev/payments/simulate/{no}(no=${order.orderNumber})}" target="_blank" class="btn btn-warning btn-sm fw-bold">
+                            <i class="bi bi-play-circle-fill me-1"></i> Simulate KHQR Scan & Pay
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Post-Payment Review Popup Modal -->
+        <div class="modal fade no-print" id="reviewPromptModal" tabindex="-1" aria-labelledby="reviewPromptModalLabel" aria-hidden="true" th:if="${hasUnreviewedItems}">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
+                <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+                    <form th:action="@{/checkout/review}" method="post">
+                        <input type="hidden" name="ordersParam" th:value="${ordersParam}">
+                        
+                        <div class="km-review-modal-header text-center position-relative">
+                            <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <div class="d-inline-flex align-items-center justify-content-center bg-warning text-white rounded-circle p-2 shadow-sm mb-2" style="width: 56px; height: 56px; font-size: 1.75rem;">
+                                <i class="bi bi-star-fill text-white"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark mb-1">Rate Your Purchase Experience</h5>
+                            <p class="small text-muted mb-0">Help Cambodian farmers with your feedback & star rating</p>
+                        </div>
+
+                        <div class="modal-body p-4">
+                            <!-- Produce Item Selector -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-secondary text-uppercase mb-1">Select Produce to Review</label>
+                                <select name="orderItemId" class="form-select rounded-3 py-2 fw-semibold" required id="selectReviewOrderItem">
+                                    <th:block th:each="order : ${orders}">
+                                        <th:block th:each="item : ${order.items}">
+                                            <option th:unless="${itemReviewedMap[item.id]}" 
+                                                    th:value="${item.id}"
+                                                    th:text="${item.produceName} + ' (' + ${item.packageName} + ') - $' + ${item.unitPrice}">
+                                                Produce Item
+                                            </option>
+                                        </th:block>
+                                    </th:block>
+                                </select>
+                            </div>
+
+                            <!-- 5 Star Interactive Rating -->
+                            <div class="text-center p-3 bg-light rounded-3 mb-3 border">
+                                <label class="form-label small fw-bold text-dark text-uppercase d-block mb-1">Rate Star (1 - 5)</label>
+                                <div class="km-star-rating mb-1">
+                                    <input type="radio" id="cf_star5" name="rating" value="5" checked><label for="cf_star5" title="5 Stars - Outstanding Quality"><i class="bi bi-star-fill"></i></label>
+                                    <input type="radio" id="cf_star4" name="rating" value="4"><label for="cf_star4" title="4 Stars - Very Good"><i class="bi bi-star-fill"></i></label>
+                                    <input type="radio" id="cf_star3" name="rating" value="3"><label for="cf_star3" title="3 Stars - Average Quality"><i class="bi bi-star-fill"></i></label>
+                                    <input type="radio" id="cf_star2" name="rating" value="2"><label for="cf_star2" title="2 Stars - Below Expectations"><i class="bi bi-star-fill"></i></label>
+                                    <input type="radio" id="cf_star1" name="rating" value="1"><label for="cf_star1" title="1 Star - Poor"><i class="bi bi-star-fill"></i></label>
+                                </div>
+                                <div class="small fw-semibold text-warning km-star-desc" id="cf_starRatingDesc">⭐⭐⭐⭐⭐ Outstanding Quality! / គុណភាពល្អឥតខ្ចោះ</div>
+                            </div>
+
+                            <!-- Comment Textarea -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark mb-1">Add Comment / Review (មតិយោបល់)</label>
+                                <textarea name="comment" class="form-control rounded-3" rows="3" 
+                                          placeholder="Write a comment about freshness, packaging, or farmer service..."></textarea>
+                                <div class="form-text small text-muted">Your verified review will be displayed on the product catalog.</div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer border-top py-3 px-4 bg-light d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                                Maybe Later
+                            </button>
+                            <button type="submit" class="km-btn-primary rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center gap-2 border-0">
+                                <i class="bi bi-send-fill"></i>
+                                <span>Submit Review</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation Links (Hidden in print) -->
+        <div class="text-center mt-5 mb-3 no-print">
+            <a th:href="@{/products}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-basket me-1"></i> <span th:text="#{cart.continue_shopping}">Continue Shopping</span>
+            </a>
+            <a th:href="@{/buyer/orders}" class="km-btn-primary">
+                <i class="bi bi-receipt me-1"></i> <span th:text="#{nav.my_orders}">View My Orders</span>
+            </a>
+        </div>
+    </main>
+
+    <div class="no-print">
+        <div th:replace="~{layout/footer :: footer}"></div>
+    </div>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/js/confirmation-review.js}"></script>
+</body>
+</html>

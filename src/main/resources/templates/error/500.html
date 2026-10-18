@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{error.500.title} + ' - ' + #{app.name}">500 Internal Server Error - Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/error.css}">
+</head>
+<body>
+    <div class="error-card">
+        <div class="error-badge error-badge-500">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        </div>
+        <div class="error-code" style="color: #dc2626;">HTTP 500</div>
+        <h1 class="error-title" th:text="#{error.500.heading}">500 - Server Error</h1>
+        <p class="error-description" th:text="#{error.500.message}">An unexpected error occurred while processing your request.</p>
+
+        <div th:if="${refId}" class="error-ref">
+            <span th:text="#{error.500.ref_code}">Error Reference Code:</span>
+            <strong th:text="${refId}">ABCD-1234</strong>
+        </div>
+
+        <div>
+            <a th:href="@{/}" class="btn-primary" th:text="#{error.500.back_home}">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>

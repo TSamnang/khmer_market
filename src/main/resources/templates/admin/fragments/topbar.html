@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div th:fragment="topbar(pageTitle)" class="admin-topbar">
+    <div class="d-flex align-items-center gap-3">
+        <h1 class="admin-topbar-title" th:text="${pageTitle}">Admin Console</h1>
+    </div>
+    <div class="admin-topbar-meta">
+        <span class="badge bg-light text-dark border d-none d-md-inline-flex align-items-center gap-1">
+            <i class="bi bi-shield-check text-success"></i> Secure Environment
+        </span>
+        <div class="dropdown">
+            <button class="btn btn-sm btn-admin-outline dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-fill"></i>
+                <span th:text="${#authentication != null ? #authentication.name : 'Administrator'}">admin</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                <li><a class="dropdown-item" th:href="@{/admin/settings}"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form th:action="@{/admin/logout}" method="post" class="px-3 py-1">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-sm btn-danger w-100">Sign Out</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+</body>
+</html>

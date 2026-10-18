@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <header th:fragment="navbar" class="km-navbar">
+        <!-- Store Announcement Bar -->
+        <div th:if="${storeConfig != null and storeConfig.announcementEnabled and storeConfig.announcementText != null and !#strings.isEmpty(storeConfig.announcementText)}"
+             class="km-announcement-bar py-1 px-3 text-center text-white small fw-semibold"
+             th:classappend="${storeConfig.announcementBgClass != null ? storeConfig.announcementBgClass : 'bg-success'}"
+             style="font-size: 0.85rem; letter-spacing: 0.01em;">
+            <div class="container d-flex align-items-center justify-content-center gap-2">
+                <i class="bi bi-megaphone-fill small"></i>
+                <span th:text="${storeConfig.announcementText}">Announcement</span>
+            </div>
+        </div>
+
+        <nav class="navbar navbar-expand-lg py-2">
+            <div class="container">
+                <!-- Brand Logo -->
+                <a th:href="@{/}" class="km-brand">
+                    <span class="km-brand-icon"
+                          th:style="${storeConfig != null and storeConfig.brandColor != null} ? 'background-color: ' + ${storeConfig.brandColor} + ';' : ''">
+                        <i class="bi bi-flower1"></i>
+                    </span>
+                    <span>
+                        <span th:style="${storeConfig != null and storeConfig.brandColor != null} ? 'color: ' + ${storeConfig.brandColor} + ';' : 'color: #047857;'"
+                              th:text="${storeConfig != null and storeConfig.storeName != null ? storeConfig.storeName : #messages.msg('app.name')}">
+                            Khmer Marketplace
+                        </span>
+                    </span>
+                </a>
+
+                <!-- Mobile Toggle -->
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#kmNavbarContent">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Navigation Content -->
+                <div class="collapse navbar-collapse" id="kmNavbarContent">
+                    <!-- Search Input -->
+                    <form class="d-flex mx-lg-4 my-2 my-lg-0 flex-grow-1 justify-content-center" th:action="@{/products}" method="get">
+                        <div class="km-search-box">
+                            <i class="bi bi-search"></i>
+                            <input class="form-control km-search-input" type="search" name="keyword" th:value="${keyword}" th:placeholder="#{catalog.search_placeholder}">
+                        </div>
+                    </form>
+
+                    <!-- Nav Items & Auth -->
+                    <ul class="navbar-nav align-items-lg-center gap-1 mb-2 mb-lg-0 justify-content-end">
+                        <li class="nav-item">
+                            <a class="km-nav-link" th:href="@{/products}">
+                                <i class="bi bi-grid"></i>
+                                <span th:text="#{nav.products}">Products</span>
+                            </a>
+                        </li>
+
+                        <!-- Language Switcher -->
+                        <li class="nav-item d-flex align-items-center me-2">
+                            <a th:if="${#locale.language == 'km'}" th:href="@{/(lang='en')}" class="km-lang-pill" title="Switch to English">EN</a>
+                            <a th:if="${#locale.language != 'km'}" th:href="@{/(lang='km')}" class="km-lang-pill" title="ប្តូរទៅភាសាខ្មែរ">KM</a>
+                        </li>
+
+                        <!-- Anonymous Links -->
+                        <li class="nav-item" sec:authorize="isAnonymous()">
+                            <a class="km-nav-link" th:href="@{/login}" th:text="#{nav.login}">Sign In</a>
+                        </li>
+                        <li class="nav-item" sec:authorize="isAnonymous()">
+                            <a class="km-btn-primary py-2 px-3 text-white" th:href="@{/register}" th:text="#{nav.register}">Register</a>
+                        </li>
+
+                        <!-- Wallet Balance Pill (Buyer and Farmer only, not Admin) -->
+                        <li class="nav-item d-flex align-items-center me-2" sec:authorize="hasAnyRole('BUYER', 'FARMER')">
+                            <a th:href="@{/wallet}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-bold d-flex align-items-center gap-1 shadow-sm" title="My Account Balance & Top-up">
+                                <i class="bi bi-wallet2 text-success"></i>
+                                <span>$<span th:text="${#numbers.formatDecimal(currentUserBalance != null ? currentUserBalance : 0.00, 1, 'COMMA', 2, 'POINT')}">0.00</span></span>
+                            </a>
+                        </li>
+
+                        <!-- Authenticated User Menu -->
+                        <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                            <a class="km-nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="userNavDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-circle p-2">
+                                    <i class="bi bi-person-fill"></i>
+                                </span>
+                                <span class="fw-bold" sec:authentication="name">User</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 mt-2">
+                                <!-- My Wallet & Balance for Buyers and Farmers only -->
+                                <li sec:authorize="hasAnyRole('BUYER', 'FARMER')">
+                                    <a class="dropdown-item py-2 fw-semibold text-success d-flex justify-content-between align-items-center" th:href="@{/wallet}">
+                                        <span><i class="bi bi-wallet2 me-2"></i> <span th:text="#{wallet.title}">My Wallet & Balance</span></span>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+                                            $<span th:text="${#numbers.formatDecimal(currentUserBalance != null ? currentUserBalance : 0.00, 1, 'COMMA', 2, 'POINT')}">0.00</span>
+                                        </span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasAnyRole('BUYER', 'FARMER')"><hr class="dropdown-divider"></li>
+
+                                <!-- Farmer Options -->
+                                <li sec:authorize="hasRole('FARMER')">
+                                    <a class="dropdown-item py-2 fw-semibold text-success" th:href="@{/farmer/dashboard}">
+                                        <i class="bi bi-speedometer2 me-2"></i> <span th:text="#{farmer.dashboard}">Farmer Dashboard</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasRole('FARMER')">
+                                    <a class="dropdown-item py-2" th:href="@{/farmer/products}">
+                                        <i class="bi bi-box-seam me-2"></i> <span th:text="#{farmer.products_mgmt}">My Products</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasRole('FARMER')">
+                                    <a class="dropdown-item py-2" th:href="@{/farmer/orders}">
+                                        <i class="bi bi-truck me-2"></i> <span th:text="#{farmer.orders_to_fulfil}">Orders to Fulfil</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasRole('FARMER')">
+                                    <a class="dropdown-item py-2" th:href="@{/farmer/profile}">
+                                        <i class="bi bi-shop me-2"></i> <span th:text="#{farmer.edit_profile}">Farm Profile</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasRole('FARMER')"><hr class="dropdown-divider"></li>
+
+                                <!-- Cart Link in Dropdown -->
+                                <li sec:authorize="hasAnyRole('BUYER', 'FARMER', 'ADMIN')">
+                                    <a class="dropdown-item py-2 d-flex justify-content-between align-items-center" th:href="@{/cart}">
+                                        <span><i class="bi bi-cart3 me-2"></i> <span th:text="#{nav.cart}">My Cart</span></span>
+                                        <span class="badge bg-warning text-dark rounded-pill"
+                                              th:if="${cartItemCount != null and cartItemCount > 0}"
+                                              th:text="${cartItemCount > 99 ? '99+' : cartItemCount}">0</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasRole('BUYER')">
+                                    <a class="dropdown-item py-2" th:href="@{/buyer/orders}">
+                                        <i class="bi bi-receipt me-2"></i> <span th:text="#{nav.my_orders}">My Orders</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasRole('BUYER')">
+                                    <a class="dropdown-item py-2" th:href="@{/buyer/favorites}">
+                                        <i class="bi bi-heart me-2"></i> <span th:text="#{nav.favorites}">Favorites</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasRole('BUYER')">
+                                    <a class="dropdown-item py-2" th:href="@{/buyer/addresses}">
+                                        <i class="bi bi-geo-alt me-2"></i> <span th:text="#{address.title}">Delivery Addresses</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasRole('BUYER')">
+                                    <a class="dropdown-item py-2" th:href="@{/buyer/profile}">
+                                        <i class="bi bi-person-gear me-2"></i> <span th:text="#{nav.profile}">Profile & Password</span>
+                                    </a>
+                                </li>
+
+                                <!-- Admin Link -->
+                                <li sec:authorize="hasRole('ADMIN')">
+                                    <a class="dropdown-item py-2 text-danger fw-bold" th:href="@{/admin/dashboard}">
+                                        <i class="bi bi-shield-lock me-2"></i> Admin Console
+                                    </a>
+                                </li>
+
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form th:action="@{/logout}" method="post" class="px-2">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 text-start border-0">
+                                            <i class="bi bi-box-arrow-right me-2"></i> <span th:text="#{nav.logout}">Sign Out</span>
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Cart Icon with Badge -->
+                        <li class="nav-item ms-lg-2">
+                            <a th:href="@{/cart}" class="km-nav-link km-cart-badge btn btn-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px; position: relative;" title="View Cart">
+                                <i class="bi bi-cart3 fs-5 text-dark"></i>
+                                <span class="badge-counter"
+                                      id="navCartBadge"
+                                      th:if="${cartItemCount != null and cartItemCount > 0}"
+                                      th:text="${cartItemCount > 99 ? '99+' : cartItemCount}">
+                                    0
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+</body>
+</html>

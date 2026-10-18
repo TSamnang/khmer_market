@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}">
+    <title th:text="#{nav.products} + ' - ' + #{app.name}">Products - Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront.css}">
+</head>
+<body>
+    <div th:replace="~{layout/navbar :: navbar}"></div>
+
+    <main class="container py-4">
+        <!-- Breadcrumb & Header -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-muted" th:text="#{nav.home}">Home</a></li>
+                <li class="breadcrumb-item active text-success fw-bold" aria-current="page" th:text="#{nav.products}">Products</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+            <!-- Sidebar Filters -->
+            <div class="col-lg-3">
+                <div class="bg-white p-3 rounded-4 border shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-funnel me-1 text-success"></i> Filters</h5>
+                        <a th:href="@{/products}" class="small text-danger text-decoration-none">Reset All</a>
+                    </div>
+
+                    <form th:action="@{/products}" method="get">
+                        <!-- Keyword input (preserve if present) -->
+                        <input type="hidden" name="keyword" th:value="${keyword}">
+
+                        <!-- Category Filter -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-secondary text-uppercase" th:text="#{farmer.category}">Category</label>
+                            <div class="d-flex flex-column gap-1">
+                                <a th:href="@{/products(keyword=${keyword}, province=${selectedProvince}, minPrice=${minPrice}, maxPrice=${maxPrice}, sort=${selectedSort})}" 
+                                   class="text-decoration-none p-2 rounded-2 small d-flex justify-content-between align-items-center"
+                                   th:classappend="${selectedCategoryId == null ? 'bg-success text-white fw-bold' : 'text-dark hover-bg-light'}">
+                                    <span th:text="#{catalog.all_categories}">All Categories</span>
+                                </a>
+                                <a th:each="cat : ${categories}"
+                                   th:href="@{/products(categoryId=${cat.id}, keyword=${keyword}, province=${selectedProvince}, minPrice=${minPrice}, maxPrice=${maxPrice}, sort=${selectedSort})}"
+                                   class="text-decoration-none p-2 rounded-2 small d-flex justify-content-between align-items-center"
+                                   th:classappend="${selectedCategoryId == cat.id ? 'bg-success text-white fw-bold' : 'text-dark hover-bg-light'}">
+                                    <span th:text="${cat.name}">Category Name</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Province Filter -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-secondary text-uppercase" th:text="#{catalog.filter_by_province}">Province</label>
+                            <select name="province" class="form-select form-select-sm">
+                                <option value="" th:text="#{catalog.all_provinces}">All Provinces</option>
+                                <option value="Battambang" th:selected="${selectedProvince == 'Battambang'}">Battambang</option>
+                                <option value="Kampot" th:selected="${selectedProvince == 'Kampot'}">Kampot</option>
+                                <option value="Siem Reap" th:selected="${selectedProvince == 'Siem Reap'}">Siem Reap</option>
+                                <option value="Kandal" th:selected="${selectedProvince == 'Kandal'}">Kandal</option>
+                                <option value="Pursat" th:selected="${selectedProvince == 'Pursat'}">Pursat</option>
+                                <option value="Takeo" th:selected="${selectedProvince == 'Takeo'}">Takeo</option>
+                                <option value="Kampong Cham" th:selected="${selectedProvince == 'Kampong Cham'}">Kampong Cham</option>
+                                <option value="Phnom Penh" th:selected="${selectedProvince == 'Phnom Penh'}">Phnom Penh</option>
+                            </select>
+                        </div>
+
+                        <!-- Price Range Filter -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-secondary text-uppercase" th:text="#{catalog.filter_by_price}">Price Range ($)</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="number" step="0.5" name="minPrice" class="form-control form-control-sm" placeholder="Min" th:value="${minPrice}">
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" step="0.5" name="maxPrice" class="form-control form-control-sm" placeholder="Max" th:value="${maxPrice}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sort Order -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-secondary text-uppercase" th:text="#{catalog.sort_by}">Sort By</label>
+                            <select name="sort" class="form-select form-select-sm">
+                                <option value="newest" th:selected="${selectedSort == 'newest'}" th:text="#{catalog.sort.newest}">Newest First</option>
+                                <option value="price_asc" th:selected="${selectedSort == 'price_asc'}" th:text="#{catalog.sort.price_asc}">Price: Low to High</option>
+                                <option value="price_desc" th:selected="${selectedSort == 'price_desc'}" th:text="#{catalog.sort.price_desc}">Price: High to Low</option>
+                                <option value="name_asc" th:selected="${selectedSort == 'name_asc'}" th:text="#{catalog.sort.name_asc}">Name: A to Z</option>
+                            </select>
+                        </div>
+
+                        <input type="hidden" name="categoryId" th:value="${selectedCategoryId}" th:if="${selectedCategoryId != null}">
+
+                        <button type="submit" class="btn btn-success btn-sm w-100 fw-bold py-2 rounded-3">
+                            <i class="bi bi-funnel-fill me-1"></i> Apply Filters
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Product Grid & Pagination -->
+            <div class="col-lg-9">
+                <!-- Toolbar -->
+                <div class="d-flex justify-content-between align-items-center mb-3 bg-white p-3 rounded-4 border shadow-sm">
+                    <div class="small text-secondary">
+                        Showing <strong class="text-dark" th:text="${products.totalElements}">0</strong> products found
+                        <span th:if="${keyword != null and !keyword.isBlank()}">for "<span class="text-success fw-bold" th:text="${keyword}"></span>"</span>
+                    </div>
+                </div>
+
+                <!-- Product Grid -->
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4" th:if="${products != null and !products.isEmpty()}">
+                    <div class="col" th:each="product : ${products.content}">
+                        <div class="km-card">
+                            <div class="km-product-img-wrap">
+                                <img th:if="${product.primaryImageUrl != null}" th:src="@{/uploads/{img}(img=${product.primaryImageUrl})}" th:alt="${product.name}" class="km-product-img">
+                                <div th:unless="${product.primaryImageUrl != null}" class="km-product-placeholder">
+                                    <i class="bi bi-tree"></i>
+                                </div>
+                                <button type="button" class="km-fav-btn" th:data-product-id="${product.id}" title="Save to Favorites">
+                                    <i class="bi bi-heart"></i>
+                                </button>
+                            </div>
+
+                            <div class="km-card-body">
+                                <div class="km-product-category" th:text="${product.categoryName}">Category</div>
+                                <a th:href="@{/products/{id}(id=${product.id})}" class="km-product-title" th:text="${product.name}">Product Name</a>
+                                
+                                <div class="km-seller-details">
+                                    <a th:href="@{/farmers/{id}(id=${product.sellerId})}" class="km-seller-tag" title="Visit Farm">
+                                        <i class="bi bi-shop text-success"></i>
+                                        <span class="fw-semibold" th:text="${product.sellerFarmName != null ? product.sellerFarmName : 'Direct Farm'}">Farm Name</span>
+                                        <span th:if="${product.province != null}" class="text-muted small">(&lrm;<span th:text="${product.province}"></span>)</span>
+                                    </a>
+                                    <div class="km-seller-user" title="Seller">
+                                        <i class="bi bi-person text-muted"></i>
+                                        <span>Sold by:</span>
+                                        <strong th:text="${product.sellerName != null ? product.sellerName : product.sellerUsername}">Farmer Name</strong>
+                                        <span class="text-muted small" th:if="${product.sellerUsername != null and (product.sellerName == null or !product.sellerName.equalsIgnoreCase(product.sellerUsername))}" th:text="'(@' + ${product.sellerUsername} + ')'">(@user)</span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
+                                    <div>
+                                        <span class="small text-muted d-block">From</span>
+                                        <span class="km-price-tag">$<span th:text="${product.minPrice}">10.00</span></span>
+                                    </div>
+                                    <a th:href="@{/products/{id}(id=${product.id})}" class="km-btn-primary py-2 px-3">
+                                        <i class="bi bi-eye"></i> <span th:text="#{catalog.select_package}">View</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="text-center py-5 bg-white rounded-4 border shadow-sm my-4" th:if="${products == null or products.isEmpty()}">
+                    <i class="bi bi-search display-3 text-secondary"></i>
+                    <h5 class="fw-bold mt-3 text-dark" th:text="#{catalog.no_products_found}">No agricultural products match your filters.</h5>
+                    <p class="text-secondary small">Try adjusting your price range, removing keywords, or selecting another category.</p>
+                    <a th:href="@{/products}" class="btn btn-outline-success btn-sm mt-2">Clear All Filters</a>
+                </div>
+
+                <!-- Pagination -->
+                <nav class="mt-4" th:if="${totalPages > 1}">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/products(page=${currentPage - 1}, categoryId=${selectedCategoryId}, keyword=${keyword}, province=${selectedProvince}, minPrice=${minPrice}, maxPrice=${maxPrice}, sort=${selectedSort})}">&laquo;</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/products(page=${i}, categoryId=${selectedCategoryId}, keyword=${keyword}, province=${selectedProvince}, minPrice=${minPrice}, maxPrice=${maxPrice}, sort=${selectedSort})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/products(page=${currentPage + 1}, categoryId=${selectedCategoryId}, keyword=${keyword}, province=${selectedProvince}, minPrice=${minPrice}, maxPrice=${maxPrice}, sort=${selectedSort})}">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/js/favorites.js}"></script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}">
+    <title th:text="${farmer.farmName != null ? farmer.farmName : farmer.username} + ' - ' + #{app.name}">Farmer Profile - Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront.css}">
+</head>
+<body>
+    <div th:replace="~{layout/navbar :: navbar}"></div>
+
+    <main class="container py-4">
+        <!-- Farm Hero Profile Header -->
+        <div class="bg-white p-4 p-md-5 rounded-4 border shadow-sm mb-5 position-relative overflow-hidden">
+            <div class="row align-items-center g-4">
+                <div class="col-md-3 text-center">
+                    <div class="position-relative d-inline-block">
+                        <img th:if="${farmer.farmImage != null}" th:src="@{/uploads/{img}(img=${farmer.farmImage})}" alt="Farm Photo" 
+                             class="rounded-circle shadow border border-4 border-success-subtle object-fit-cover" style="width: 140px; height: 140px;">
+                        <div th:unless="${farmer.farmImage != null}" 
+                             class="rounded-circle bg-success-subtle text-success border border-4 border-success-subtle d-inline-flex align-items-center justify-content-center shadow" 
+                             style="width: 140px; height: 140px; font-size: 3.5rem;">
+                            <i class="bi bi-shop"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-9">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <h1 class="fw-bold text-dark fs-2 mb-0" th:text="${farmer.farmName != null ? farmer.farmName : farmer.username}">Farm Name</h1>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle py-1 px-2">
+                            <i class="bi bi-patch-check-fill"></i> Verified Cambodian Farm
+                        </span>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-3 text-secondary small mb-3">
+                        <span th:if="${farmer.farmerName != null}">
+                            <i class="bi bi-person text-success"></i> <span th:text="${farmer.farmerName}">Farmer Name</span>
+                        </span>
+                        <span th:if="${farmer.province != null}">
+                            <i class="bi bi-geo-alt text-success"></i> <span th:text="${farmer.province}">Province</span>
+                        </span>
+                        <span th:if="${farmer.phone != null}">
+                            <i class="bi bi-telephone text-success"></i> <span th:text="${farmer.phone}">Phone</span>
+                        </span>
+                    </div>
+
+                    <p class="text-secondary mb-0" th:text="${farmer.farmDescription}">
+                        Organic farming dedicated to producing quality local crops and sustainable agriculture.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Harvest from this Farm -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold fs-4 text-dark mb-1">Harvest Products from this Farm</h3>
+                <p class="text-secondary small mb-0">Browse fresh items shipped directly from this grower</p>
+            </div>
+            <a th:href="@{/products}" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> <span th:text="#{catalog.browse_all}">All Products</span>
+            </a>
+        </div>
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" th:if="${products != null and !products.isEmpty()}">
+            <div class="col" th:each="product : ${products}">
+                <div class="km-card">
+                    <div class="km-product-img-wrap">
+                        <img th:if="${product.primaryImageUrl != null}" th:src="@{/uploads/{img}(img=${product.primaryImageUrl})}" th:alt="${product.name}" class="km-product-img">
+                        <div th:unless="${product.primaryImageUrl != null}" class="km-product-placeholder">
+                            <i class="bi bi-tree"></i>
+                        </div>
+                        <button type="button" class="km-fav-btn" th:data-product-id="${product.id}" title="Save to Favorites">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                    </div>
+
+                    <div class="km-card-body">
+                        <div class="km-product-category" th:text="${product.categoryName}">Category</div>
+                        <a th:href="@{/products/{id}(id=${product.id})}" class="km-product-title" th:text="${product.name}">Product Name</a>
+
+                        <div class="km-seller-details" th:if="${product.sellerName != null or product.sellerUsername != null}">
+                            <div class="km-seller-user" title="Seller">
+                                <i class="bi bi-person text-muted"></i>
+                                <span>Sold by:</span>
+                                <strong th:text="${product.sellerName != null ? product.sellerName : product.sellerUsername}">Farmer Name</strong>
+                                <span class="text-muted small" th:if="${product.sellerUsername != null and (product.sellerName == null or !product.sellerName.equalsIgnoreCase(product.sellerUsername))}" th:text="'(@' + ${product.sellerUsername} + ')'">(@user)</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
+                            <div>
+                                <span class="small text-muted d-block">From</span>
+                                <span class="km-price-tag">$<span th:text="${product.minPrice}">10.00</span></span>
+                            </div>
+                            <a th:href="@{/products/{id}(id=${product.id})}" class="km-btn-primary py-2 px-3">
+                                <i class="bi bi-eye"></i> <span th:text="#{catalog.select_package}">View</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center py-5 bg-white rounded-4 border shadow-sm my-4" th:if="${products == null or products.isEmpty()}">
+            <i class="bi bi-basket display-3 text-secondary"></i>
+            <h5 class="fw-bold mt-3 text-dark">No products currently active for this farm.</h5>
+            <p class="text-secondary small">Check back soon for new seasonal crops.</p>
+        </div>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/js/favorites.js}"></script>
+</body>
+</html>

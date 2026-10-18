@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <footer th:fragment="footer" class="km-footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="km-brand-icon"
+                              th:style="${storeConfig != null and storeConfig.brandColor != null} ? 'background-color: ' + ${storeConfig.brandColor} + '; width: 32px; height: 32px; font-size: 1rem;' : 'width: 32px; height: 32px; font-size: 1rem;'">
+                            <i class="bi bi-flower1"></i>
+                        </span>
+                        <span class="text-white fw-bold fs-5"
+                              th:text="${storeConfig != null and storeConfig.storeName != null ? storeConfig.storeName : #messages.msg('app.name')}">
+                            Khmer Marketplace
+                        </span>
+                    </div>
+                    <p class="small text-slate-400 mb-3"
+                       th:text="${storeConfig != null and storeConfig.tagline != null ? storeConfig.tagline : #messages.msg('app.tagline')}">
+                        Direct Agricultural Marketplace from Cambodian Farmers
+                    </p>
+                    <div class="d-flex gap-3">
+                        <span class="badge bg-dark border border-secondary text-light py-2 px-3">
+                            <i class="bi bi-shield-check text-success me-1"></i> OWASP ASVS Verified
+                        </span>
+                        <span class="badge bg-dark border border-secondary text-light py-2 px-3">
+                            <i class="bi bi-qr-code text-warning me-1"></i> KHQR Supported
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <div class="km-footer-title" th:text="#{nav.products}">Products</div>
+                    <a th:href="@{/products}" class="km-footer-link" th:text="#{catalog.browse_all}">Browse All</a>
+                    <a th:href="@{/products(sort='newest')}" class="km-footer-link" th:text="#{catalog.sort.newest}">Newest Harvest</a>
+                    <a th:href="@{/products(sort='price_asc')}" class="km-footer-link" th:text="#{catalog.sort.price_asc}">Best Price</a>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="km-footer-title" th:text="#{product.seller_info}">Farmers & Community</div>
+                    <a th:href="@{/register}" class="km-footer-link" th:text="#{auth.register.role_farmer}">Sell as a Farmer</a>
+                    <a th:href="@{/login}" class="km-footer-link" th:text="#{nav.login}">Farmer Sign In</a>
+                    <span class="small text-secondary d-block mt-2">Connecting smallholders in Battambang, Kampot, Siem Reap, and across Cambodia.</span>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="km-footer-title">Platform & Support</div>
+                    <span class="small text-secondary d-block mb-2">Secure digital transactions, multi-vendor fulfillment, and direct farm-to-table delivery.</span>
+                    <div class="text-secondary small mt-3">
+                        <i class="bi bi-envelope me-1"></i>
+                        <span th:text="${storeConfig != null and storeConfig.supportEmail != null ? storeConfig.supportEmail : 'support@market.kh'}">support@market.kh</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="km-footer-bottom">
+                <div>
+                    &copy; 2026 <span th:text="${storeConfig != null and storeConfig.storeName != null ? storeConfig.storeName : #messages.msg('app.name')}">Khmer Marketplace</span>. All rights reserved.
+                </div>
+                <div class="text-secondary">
+                    Bilingual Agricultural Platform (ខ្មែរ / English)
+                </div>
+            </div>
+        </div>
+        <script th:src="@{/js/main.js}"></script>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-login.css}">
+</head>
+<body>
+    <div class="admin-login-card">
+        <div class="admin-logo-tile">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+        </div>
+
+        <h1 class="admin-login-title" th:text="#{admin.login.title}">Khmer Marketplace Admin</h1>
+        <p class="admin-login-sub" th:text="#{admin.login.subtitle}">Authorized administrative personnel only</p>
+
+        <!-- Error feedback -->
+        <div th:if="${param.error}" class="admin-alert">
+            <span th:text="#{admin.login.error}">Invalid administrator credentials.</span>
+        </div>
+
+        <div th:if="${param.logout}" class="admin-logout-alert">
+            You have been signed out.
+        </div>
+
+        <!-- Lockout timer -->
+        <div th:if="${param.locked}" class="admin-locked-box">
+            <div style="font-weight: 600; font-size: 13px;" th:text="#{admin.login.locked}">Admin account is locked.</div>
+            <div id="rate-limit-countdown" class="admin-countdown" th:attr="data-seconds=${param.lockSeconds != null ? param.lockSeconds[0] : 900}">--:--</div>
+        </div>
+
+        <form th:action="@{/admin/login}" method="post">
+            <div class="admin-form-group">
+                <label for="admin-username" class="admin-form-label">Username</label>
+                <div class="admin-input-wrap">
+                    <span class="admin-input-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </span>
+                    <input type="text" id="admin-username" name="username" class="admin-input" required autofocus autocomplete="username" placeholder="admin">
+                </div>
+            </div>
+
+            <div class="admin-form-group">
+                <label for="admin-password" class="admin-form-label">Password</label>
+                <div class="admin-input-wrap">
+                    <span class="admin-input-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    </span>
+                    <input type="password" id="admin-password" name="password" class="admin-input" required autocomplete="current-password" placeholder="••••••••••••">
+                </div>
+            </div>
+
+            <button type="submit" class="admin-btn">Sign In to Console</button>
+        </form>
+    </div>
+
+    <script th:if="${param.locked}" th:src="@{/js/countdown.js}"></script>
+</body>
+</html>

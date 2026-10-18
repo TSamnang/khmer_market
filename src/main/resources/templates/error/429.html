@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{error.429.title} + ' - ' + #{app.name}">429 Too Many Requests - Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/error.css}">
+</head>
+<body>
+    <div class="error-card">
+        <div class="error-badge error-badge-429">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        </div>
+        <div class="error-code" style="color: #7c3aed;">HTTP 429</div>
+        <h1 class="error-title" th:text="#{error.429.heading}">429 - Too Many Requests</h1>
+        <p class="error-description" th:text="#{error.429.message}">You have made too many requests in a short period. Please wait before trying again.</p>
+
+        <div class="countdown-box">
+            <div style="font-size: 13px; color: #64748b; margin-bottom: 6px;" th:text="#{error.429.countdown_label}">You can retry in:</div>
+            <div id="rate-limit-countdown" class="countdown-time" th:attr="data-seconds=${retryAfterSeconds != null ? retryAfterSeconds : 60}">--:--</div>
+        </div>
+
+        <div>
+            <button id="countdown-action-btn" class="btn-primary disabled" disabled th:text="#{error.429.try_again}">Try Again</button>
+            <div style="margin-top: 16px;">
+                <a th:href="@{/}" style="color: #64748b; text-decoration: none; font-size: 14px;" th:text="#{error.404.back_home}">Back to Home</a>
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/js/countdown.js}"></script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}">
+    <title th:text="#{checkout.title} + ' - ' + #{app.name}">Checkout - Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront.css}">
+    <style>
+        .km-address-select-card {
+            border: 2px solid var(--km-slate-200);
+            border-radius: var(--km-radius-md);
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .km-address-select-card:hover {
+            border-color: var(--km-primary-border);
+            background-color: var(--km-primary-subtle);
+        }
+        .km-address-select-card.selected {
+            border-color: var(--km-primary);
+            background-color: var(--km-primary-subtle);
+        }
+        .km-payment-card {
+            border: 2px solid var(--km-slate-200);
+            border-radius: var(--km-radius-md);
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .km-payment-card:hover {
+            border-color: var(--km-primary-border);
+            background-color: var(--km-primary-subtle);
+        }
+        .km-payment-card.selected,
+        .km-payment-card.active,
+        .km-payment-card:has(input[type="radio"]:checked) {
+            border-color: var(--km-primary) !important;
+            background-color: var(--km-primary-subtle) !important;
+            box-shadow: 0 0 0 1px var(--km-primary);
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{layout/navbar :: navbar}"></div>
+
+    <main class="container py-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a th:href="@{/cart}" class="text-decoration-none text-muted" th:text="#{nav.cart}">Cart</a></li>
+                <li class="breadcrumb-item active text-success fw-bold" aria-current="page" th:text="#{checkout.title}">Checkout</li>
+            </ol>
+        </nav>
+
+        <h1 class="fw-bold fs-2 text-dark mb-4 d-flex align-items-center gap-2">
+            <i class="bi bi-shield-check text-success"></i>
+            <span th:text="#{checkout.title}">Secure Checkout</span>
+        </h1>
+
+        <!-- Error Message -->
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}">Error</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <form th:action="@{/checkout}" method="post" id="checkoutForm" th:object="${checkoutDto}">
+            <!-- Hidden Single-Use Security Token -->
+            <input type="hidden" th:field="*{checkoutToken}">
+            <input type="hidden" th:field="*{addressId}" id="selectedAddressId">
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <!-- Step 1: Delivery Address -->
+                    <div class="bg-white p-4 rounded-4 border shadow-sm mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <span class="badge bg-success rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">1</span>
+                                <span th:text="#{checkout.shipping_address}">Delivery Address</span>
+                            </h5>
+                        </div>
+
+                        <!-- Saved Addresses Grid -->
+                        <div class="row g-3 mb-3" th:if="${addresses != null and !addresses.isEmpty()}">
+                            <div class="col-md-6" th:each="addr : ${addresses}">
+                                <div class="km-address-select-card" th:classappend="${checkoutDto.addressId == addr.id ? 'selected' : ''}">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="addressRadio" th:value="${addr.id}" th:checked="${checkoutDto.addressId == addr.id}">
+                                            <strong class="form-check-label text-dark" th:text="${addr.name}">Recipient Name</strong>
+                                        </div>
+                                        <span th:if="${addr.default}" class="badge bg-success-subtle text-success border border-success-subtle small">Default</span>
+                                    </div>
+                                    <div class="small text-secondary ps-4">
+                                        <div><i class="bi bi-telephone me-1"></i> <span th:text="${addr.phone}">Phone</span></div>
+                                        <div><i class="bi bi-geo-alt me-1"></i> <span th:text="${addr.province}">Province</span>, <span th:text="${addr.address}">Address</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div th:if="${addresses == null or addresses.isEmpty()}" class="alert alert-warning">
+                            <i class="bi bi-info-circle me-1"></i> <span th:text="#{checkout.no_addresses}">No delivery address saved yet. Please enter your address below.</span>
+                        </div>
+
+                        <!-- Or enter new address inline -->
+                        <div class="mt-3">
+                            <button class="btn btn-outline-success btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#newAddressCollapse">
+                                <i class="bi bi-plus-circle me-1"></i> <span th:text="#{checkout.add_new_address}">+ Add New Delivery Address</span>
+                            </button>
+
+                            <div class="collapse mt-3" id="newAddressCollapse">
+                                <div class="p-3 bg-light rounded-3 border">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold" th:text="#{address.full_name}">Recipient Name</label>
+                                            <input type="text" th:field="*{newAddress.name}" class="form-control form-control-sm" placeholder="e.g. Sokha Chan">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold" th:text="#{address.phone}">Phone Number</label>
+                                            <input type="text" th:field="*{newAddress.phone}" class="form-control form-control-sm" placeholder="012 345 678">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold" th:text="#{address.province}">Province</label>
+                                            <select th:field="*{newAddress.province}" class="form-select form-select-sm">
+                                                <option value="Battambang">Battambang</option>
+                                                <option value="Kampot">Kampot</option>
+                                                <option value="Siem Reap">Siem Reap</option>
+                                                <option value="Kandal">Kandal</option>
+                                                <option value="Pursat">Pursat</option>
+                                                <option value="Takeo">Takeo</option>
+                                                <option value="Kampong Cham">Kampong Cham</option>
+                                                <option value="Phnom Penh" selected>Phnom Penh</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold" th:text="#{address.address_line}">Address Line / Street</label>
+                                            <input type="text" th:field="*{newAddress.address}" class="form-control form-control-sm" placeholder="House #, Street, Village, Commune">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Payment Method -->
+                    <div class="bg-white p-4 rounded-4 border shadow-sm mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <span class="badge bg-success rounded-circle p-2" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">2</span>
+                                <span th:text="#{checkout.payment_method}">Payment Method</span>
+                            </h5>
+                        </div>
+
+                        <div class="d-flex flex-column gap-3">
+                            <!-- Account Balance Payment Option -->
+                            <div class="km-payment-card" th:classappend="${checkoutDto.paymentMethod == 'balance' or checkoutDto.paymentMethod == null} ? 'selected active' : ''">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="balance" id="payBalance">
+                                        <label class="form-check-label fw-bold text-dark d-flex align-items-center gap-2" for="payBalance">
+                                            <i class="bi bi-wallet2 text-success fs-5"></i>
+                                            <span th:text="#{checkout.balance_name}">Account Balance</span>
+                                            <span class="badge bg-success text-white small">Instant 1-Click Pay</span>
+                                        </label>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle fs-6 px-3 py-1 fw-bold">
+                                            $<span th:text="${#numbers.formatDecimal(currentUserBalance != null ? currentUserBalance : 0.00, 1, 'COMMA', 2, 'POINT')}">0.00</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="ps-4 mt-1">
+                                    <p class="small text-secondary mb-1" th:text="#{checkout.balance_desc}">Pay seamlessly and instantly from your deposited Khmer Market wallet balance.</p>
+                                    <div th:if="${currentUserBalance != null and cart != null and cart.grandTotal != null and currentUserBalance < cart.grandTotal}" class="alert alert-warning py-1 px-2 small mb-0 d-inline-flex align-items-center gap-1 mt-1">
+                                        <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                                        <span>Insufficient balance ($<span th:text="${#numbers.formatDecimal(currentUserBalance, 1, 'COMMA', 2, 'POINT')}">0.00</span> available, $<span th:text="${#numbers.formatDecimal(cart.grandTotal, 1, 'COMMA', 2, 'POINT')}">0.00</span> needed). </span>
+                                        <a th:href="@{/wallet}" target="_blank" class="fw-bold text-dark text-decoration-underline ms-1">Deposit Funds &rarr;</a>
+                                    </div>
+                                    <div th:if="${currentUserBalance != null and cart != null and cart.grandTotal != null and currentUserBalance >= cart.grandTotal}" class="small text-success fw-semibold mt-1">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Sufficient balance available. Zero processing fee.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Credit or Debit Card Option -->
+                            <div class="km-payment-card" th:classappend="${checkoutDto.paymentMethod == 'card'} ? 'selected active' : ''">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="card" id="payCard">
+                                        <label class="form-check-label fw-bold text-dark d-flex align-items-center gap-2" for="payCard">
+                                            <i class="bi bi-credit-card-2-front text-primary fs-5"></i>
+                                            <span th:text="#{checkout.card_name}">Credit or Debit Card</span>
+                                            <span class="badge bg-primary text-white small">Instant</span>
+                                        </label>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 text-secondary fs-5">
+                                        <i class="bi bi-credit-card" title="Visa / Mastercard"></i>
+                                        <i class="bi bi-shield-check text-success fs-6" title="Secure"></i>
+                                    </div>
+                                </div>
+                                <p class="small text-secondary ps-4 mb-0 mt-1" th:text="#{checkout.card_desc}">Pay securely with Visa, Mastercard, JCB, or UnionPay. Encrypted & instant confirmation.</p>
+
+                                <!-- Card Details Form Fields (shown when Card is active) -->
+                                <div id="cardDetailsBox" class="mt-3 pt-3 border-top ps-4" th:classappend="${checkoutDto.paymentMethod != 'card'} ? 'd-none' : ''">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label class="form-label small fw-bold text-dark mb-1" th:text="#{checkout.card_number}">Card Number</label>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-white"><i class="bi bi-credit-card text-muted"></i></span>
+                                                <input type="text" th:field="*{cardNumber}" id="inputCardNumber" class="form-control" placeholder="4532 •••• •••• 8892" maxlength="19" autocomplete="cc-number">
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label small fw-bold text-dark mb-1" th:text="#{checkout.card_holder}">Cardholder Name</label>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-white"><i class="bi bi-person text-muted"></i></span>
+                                                <input type="text" th:field="*{cardHolderName}" id="inputCardHolder" class="form-control text-uppercase" placeholder="CHAN SOKHA" autocomplete="cc-name">
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small fw-bold text-dark mb-1" th:text="#{checkout.card_expiry}">Expiry Date (MM/YY)</label>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-white"><i class="bi bi-calendar-event text-muted"></i></span>
+                                                <input type="text" th:field="*{cardExpiry}" id="inputCardExpiry" class="form-control" placeholder="MM/YY" maxlength="5" autocomplete="cc-exp">
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small fw-bold text-dark mb-1" th:text="#{checkout.card_cvv}">CVV / CVC</label>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-white"><i class="bi bi-lock text-muted"></i></span>
+                                                <input type="password" th:field="*{cardCvv}" id="inputCardCvv" class="form-control" placeholder="•••" maxlength="4" autocomplete="cc-csc">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1 text-muted small mt-2">
+                                        <i class="bi bi-shield-lock-fill text-success"></i>
+                                        <span style="font-size: 0.78rem;">256-bit encrypted checkout. Card details are processed through a secure PCI-compliant gateway.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bakong KHQR Option -->
+                            <div class="km-payment-card" th:classappend="${checkoutDto.paymentMethod == 'khqr'} ? 'selected active' : ''">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" th:field="*{paymentMethod}" value="khqr" id="payKhqr">
+                                    <label class="form-check-label fw-bold text-dark d-flex align-items-center gap-2" for="payKhqr">
+                                        <i class="bi bi-qr-code text-warning fs-5"></i>
+                                        <span th:text="#{checkout.khqr_name}">Bakong KHQR (Instant Digital Pay)</span>
+                                        <span class="badge bg-warning text-dark small">Khmer QR</span>
+                                    </label>
+                                </div>
+                                <p class="small text-secondary ps-4 mb-0 mt-1" th:text="#{checkout.khqr_desc}">Scan with any Cambodian banking app (Bakong, ABA, Acleda, Wing, etc.)</p>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Info Boxes -->
+                        <div id="khqrInfoBox" class="mt-3 p-3 bg-warning-subtle rounded-3 border border-warning" th:classappend="${checkoutDto.paymentMethod != 'khqr'} ? 'd-none' : ''">
+                            <i class="bi bi-qr-code-scan me-1 text-warning"></i>
+                            <span class="small text-dark">Upon clicking <strong>Place Order</strong>, a Bakong KHQR code will be generated for your phone banking scan. In development mode, an automated simulation link is provided.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Sidebar: Order Summary & Multi-Vendor Partitioning Info -->
+                <div class="col-lg-4">
+                    <div class="bg-white p-4 rounded-4 border shadow-sm sticky-top" style="top: 80px;">
+                        <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom" th:text="#{checkout.order_summary}">Order Summary</h5>
+
+                        <!-- Multi-vendor notice alert -->
+                        <div class="alert alert-info py-2 px-3 small mb-3">
+                            <i class="bi bi-diagram-3-fill me-1"></i>
+                            <span th:text="#{checkout.multi_vendor_notice}">Your cart contains items from multiple farmers. A separate order will be created for each farmer.</span>
+                        </div>
+
+                        <!-- Items List -->
+                        <div class="d-flex flex-column gap-2 mb-3 max-h-300 overflow-auto">
+                            <div th:each="item : ${cart.items}" class="d-flex justify-content-between align-items-center py-1 border-bottom small">
+                                <div>
+                                    <strong class="text-dark d-block text-truncate" style="max-width: 180px;" th:text="${item.productName}">Product</strong>
+                                    <span class="text-muted" th:text="${item.packageName} + ' x ' + ${item.quantity}">1kg x 2</span>
+                                </div>
+                                <span class="fw-bold text-dark">$<span th:text="${item.subtotal}">20.00</span></span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between text-secondary mb-2">
+                            <span>Total Items:</span>
+                            <strong class="text-dark" th:text="${cart.totalItemCount}">0</strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between text-secondary mb-2">
+                            <span>Items Subtotal:</span>
+                            <strong class="text-dark">$<span th:text="${cart.subtotal}">0.00</span></strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between text-secondary mb-2">
+                            <span>Shipping Fee:</span>
+                            <span th:if="${cart.shippingFee == null or cart.shippingFee == 0 or cart.shippingFee.compareTo(T(java.math.BigDecimal).ZERO) == 0}" class="badge bg-success-subtle text-success border border-success-subtle">FREE</span>
+                            <strong th:unless="${cart.shippingFee == null or cart.shippingFee == 0 or cart.shippingFee.compareTo(T(java.math.BigDecimal).ZERO) == 0}" class="text-dark">$<span th:text="${cart.shippingFee}">0.00</span></strong>
+                        </div>
+
+                        <div class="d-flex justify-content-between fs-5 fw-bold text-dark pt-3 border-top mb-4">
+                            <span th:text="#{cart.total}">Total Amount:</span>
+                            <span class="text-success">$<span th:text="${cart.grandTotal}">0.00</span></span>
+                        </div>
+
+                        <button type="submit" id="btnSubmitOrder" class="km-btn-primary w-100 py-3 fs-6">
+                            <i class="bi bi-lock-fill"></i>
+                            <span th:text="#{checkout.place_order}">Place Order & Confirm</span>
+                        </button>
+
+                        <div class="text-center mt-3 small text-muted">
+                            <i class="bi bi-shield-lock text-success me-1"></i> Atomic inventory reservation & deadlock protection
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/js/checkout.js}"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<div th:fragment="sidebar" class="admin-sidebar">
+    <a th:href="@{/admin/dashboard}" class="admin-sidebar-brand">
+        <i class="bi bi-shield-lock-fill text-indigo-400"></i>
+        <span>Khmer Market</span>
+        <span class="badge ms-auto">Admin</span>
+    </a>
+
+    <div class="admin-sidebar-nav">
+        <div class="admin-nav-section-title">Overview</div>
+        <a th:href="@{/admin/dashboard}" class="admin-nav-link" th:classappend="${activeNav == 'dashboard'} ? 'active' : ''">
+            <i class="bi bi-grid-1x2"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <div class="admin-nav-section-title">People & Moderation</div>
+        <a th:href="@{/admin/users}" class="admin-nav-link" th:classappend="${activeNav == 'users'} ? 'active' : ''">
+            <i class="bi bi-people"></i>
+            <span>Users</span>
+        </a>
+        <a th:href="@{/admin/farmers}" class="admin-nav-link" th:classappend="${activeNav == 'farmers'} ? 'active' : ''">
+            <i class="bi bi-person-check"></i>
+            <span>Farmer Approvals</span>
+        </a>
+        <a th:href="@{/admin/reviews}" class="admin-nav-link" th:classappend="${activeNav == 'reviews'} ? 'active' : ''">
+            <i class="bi bi-chat-left-quote"></i>
+            <span>Reviews</span>
+        </a>
+
+        <div class="admin-nav-section-title">Marketplace Catalog</div>
+        <a th:href="@{/admin/categories}" class="admin-nav-link" th:classappend="${activeNav == 'categories'} ? 'active' : ''">
+            <i class="bi bi-tags"></i>
+            <span>Categories</span>
+        </a>
+        <a th:href="@{/admin/products}" class="admin-nav-link" th:classappend="${activeNav == 'products'} ? 'active' : ''">
+            <i class="bi bi-box-seam"></i>
+            <span>Products</span>
+        </a>
+
+        <div class="admin-nav-section-title">Transactions & Audit</div>
+        <a th:href="@{/admin/orders}" class="admin-nav-link" th:classappend="${activeNav == 'orders'} ? 'active' : ''">
+            <i class="bi bi-receipt"></i>
+            <span>Orders</span>
+        </a>
+        <a th:href="@{/admin/payments}" class="admin-nav-link" th:classappend="${activeNav == 'payments'} ? 'active' : ''">
+            <i class="bi bi-credit-card"></i>
+            <span>Payments Log</span>
+        </a>
+        <a th:href="@{/admin/bank}" class="admin-nav-link" th:classappend="${activeNav == 'bank'} ? 'active' : ''">
+            <i class="bi bi-bank2 text-success"></i>
+            <span>Bank</span>
+        </a>
+
+        <div class="admin-nav-section-title">Administration</div>
+        <a th:href="@{/admin/store-customize}" class="admin-nav-link" th:classappend="${activeNav == 'store-customize'} ? 'active' : ''">
+            <i class="bi bi-palette"></i>
+            <span>Store Customize</span>
+        </a>
+        <a th:href="@{/admin/settings}" class="admin-nav-link" th:classappend="${activeNav == 'settings'} ? 'active' : ''">
+            <i class="bi bi-sliders"></i>
+            <span>Settings & Rate Limits</span>
+        </a>
+        <a th:href="@{/}" target="_blank" class="admin-nav-link">
+            <i class="bi bi-shop"></i>
+            <span>View Storefront</span>
+            <i class="bi bi-box-arrow-up-right ms-auto small opacity-50"></i>
+        </a>
+    </div>
+
+    <div class="admin-sidebar-footer">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-person-circle fs-5 text-secondary"></i>
+            <span class="small text-truncate" style="max-width: 140px;" th:text="${#authentication != null ? #authentication.name : 'Admin'}">admin</span>
+        </div>
+        <form th:action="@{/admin/logout}" method="post" class="m-0">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <button type="submit" class="btn btn-sm btn-link text-secondary p-0 text-decoration-none" title="Logout">
+                <i class="bi bi-box-arrow-right fs-5"></i>
+            </button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

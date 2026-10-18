@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Bank & Escrow Gateway - Khmer Market Admin</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body class="admin-body">
+<div class="admin-wrapper">
+    <div th:replace="~{admin/fragments/sidebar :: sidebar}"></div>
+
+    <div class="admin-canvas">
+        <div th:replace="~{admin/fragments/topbar :: topbar('Platform Bank & Escrow Gateway')}"></div>
+
+        <div class="admin-content">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb small">
+                    <li class="breadcrumb-item"><a th:href="@{/admin}" class="text-decoration-none text-muted">Admin</a></li>
+                    <li class="breadcrumb-item active text-success fw-bold" aria-current="page">Bank & Gateway</li>
+                </ol>
+            </nav>
+
+            <!-- Alerts -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2 fs-5 align-middle"></i>
+                <span th:text="${successMessage}">Operation successful!</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2 fs-5 align-middle"></i>
+                <span th:text="${errorMessage}">An error occurred.</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Escrow & Master Bank Financial Ledger (4 Metric Cards) -->
+            <div class="row g-3 mb-4">
+                <!-- Card 1: Master Bank -->
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="admin-bank-card card-primary">
+                        <div>
+                            <div class="bank-card-header">
+                                <span class="bank-card-label"><i class="bi bi-bank me-1 text-primary"></i> Master Bank</span>
+                                <span class="badge rounded-pill" 
+                                      th:classappend="${config.bankEnvironment == 'LIVE' ? 'bg-success text-white' : 'bg-secondary text-white'}"
+                                      th:text="${config.bankEnvironment}">LIVE</span>
+                            </div>
+                            <div class="bank-card-value text-dark" style="font-size: 1.35rem;" th:text="${config.bankName}">ABA Bank</div>
+                            <div class="font-monospace small text-primary fw-bold" th:text="${config.bankAccountNumber}">001 888 999</div>
+                            <div class="small text-muted text-truncate mt-1" th:text="${config.bankAccountName}">KHMER MARKET CO., LTD</div>
+                        </div>
+                        <div class="bank-card-desc">
+                            Target bank account receiving deposits and card payments.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: 7-Day Escrow Hold -->
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="admin-bank-card card-warning">
+                        <div>
+                            <div class="bank-card-header">
+                                <span class="bank-card-label"><i class="bi bi-shield-lock me-1 text-warning"></i> 7-Day Escrow Hold</span>
+                                <span class="badge bg-warning-subtle text-dark border border-warning rounded-pill px-2 py-1">
+                                    <i class="bi bi-clock-history me-1"></i>Protected
+                                </span>
+                            </div>
+                            <div class="bank-card-value text-warning" th:text="'$' + ${#numbers.formatDecimal(escrowSummary.heldEscrowAmount, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                            <div class="bank-card-sub text-muted small">Locked buyer deposits</div>
+                        </div>
+                        <div class="bank-card-desc">
+                            Buyer funds held in Master Bank. Non-refundable during 7-day fulfillment.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Converted to Sellers -->
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="admin-bank-card card-info">
+                        <div>
+                            <div class="bank-card-header">
+                                <span class="bank-card-label"><i class="bi bi-arrow-left-right me-1 text-info"></i> Converted to Sellers</span>
+                                <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-1">
+                                    <i class="bi bi-check2-all me-1"></i>Disbursed
+                                </span>
+                            </div>
+                            <div class="bank-card-value text-info" th:text="'$' + ${#numbers.formatDecimal(escrowSummary.releasedEscrowAmount, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                            <div class="bank-card-sub text-muted small">Released to farm accounts</div>
+                        </div>
+                        <div class="bank-card-desc">
+                            Confirmed orders converted from bank to seller website balances.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Retained Platform Tax -->
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="admin-bank-card card-success">
+                        <div>
+                            <div class="bank-card-header">
+                                <span class="bank-card-label"><i class="bi bi-cash-stack me-1 text-success"></i> Retained Platform Tax</span>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1" th:text="${config.commissionPercentage} + '% Comm'">5% Comm</span>
+                            </div>
+                            <div class="bank-card-value text-success" th:text="'$' + ${#numbers.formatDecimal(escrowSummary.retainedPlatformTax, 1, 'COMMA', 2, 'POINT')}">$0.00</div>
+                            <div class="bank-card-sub text-muted small">Platform commission earnings</div>
+                        </div>
+                        <div class="bank-card-desc">
+                            Marketplace commissions retained in Platform Master Bank account.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Architecture Info Callout -->
+            <div class="card border-0 bg-light-subtle rounded-3 shadow-sm mb-4 border-start border-4 border-success p-3">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="fs-3 text-success"><i class="bi bi-shield-check"></i></div>
+                    <div>
+                        <h6 class="fw-bold text-dark mb-1">Unified Banking Gateway & 7-Day Escrow Protection Model</h6>
+                        <p class="small text-muted mb-0">
+                            <strong>Inflow:</strong> All buyer transactions (Card payments, Deposit balance) enter the platform owner's connected bank account below.
+                            <strong>Escrow Lock:</strong> Funds are locked in escrow for <span class="badge bg-secondary" th:text="${config.escrowHoldDays} + ' Days'">7 Days</span> to protect agricultural fulfillment. 
+                            <strong>No Refunds in 7 Days:</strong> Buyers cannot refund or cancel during this window.
+                            <strong>Payout Conversion:</strong> Once auto-confirmed or delivered, net earnings are released into the seller's website balance, and platform tax/commissions stay in this Master Bank.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bank & Gateway Configuration Form -->
+            <div class="admin-card mb-4">
+                <div class="admin-card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="admin-card-title mb-0"><i class="bi bi-bank2 text-success me-2"></i>Master Bank & API Credentials</h2>
+                        <span class="small text-muted">Update platform bank details and merchant payment gateway integration</span>
+                    </div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                        <i class="bi bi-link-45deg me-1"></i>Connected to Marketplace
+                    </span>
+                </div>
+                <div class="admin-card-body">
+                    <form th:action="@{/admin/bank/update}" method="post" th:object="${storeConfigDto}">
+                        
+                        <div class="row g-3 mb-4">
+                            <!-- Bank Selection & Details -->
+                            <div class="col-12">
+                                <h6 class="text-uppercase text-muted fw-bold small border-bottom pb-2 mb-3">1. Master Bank Account Details</h6>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold small" for="bankName">Bank Provider</label>
+                                <select name="bankName" id="bankName" class="form-select" th:field="*{bankName}" required>
+                                    <option value="ABA Bank">ABA Bank (National Bank of Canada Group)</option>
+                                    <option value="Bakong NBC (KHQR)">Bakong NBC (National Bank of Cambodia KHQR)</option>
+                                    <option value="ACLEDA Bank">ACLEDA Bank Plc.</option>
+                                    <option value="Wing Bank">Wing Bank (Cambodia) Plc.</option>
+                                    <option value="Canadia Bank">Canadia Bank Plc.</option>
+                                    <option value="Sathapana Bank">Sathapana Bank</option>
+                                    <option value="J Trust Royal Bank">J Trust Royal Bank</option>
+                                </select>
+                                <div class="form-text small">Bank connecting platform payouts and card receivables.</div>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold small" for="bankAccountNumber">Bank Account Number / IBAN</label>
+                                <input type="text" name="bankAccountNumber" id="bankAccountNumber" class="form-control font-monospace" th:field="*{bankAccountNumber}" placeholder="001 888 999" required>
+                                <div class="form-text small">Target bank account for receiving deposits and processing payouts.</div>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold small" for="bankAccountName">Account Legal / Merchant Name</label>
+                                <input type="text" name="bankAccountName" id="bankAccountName" class="form-control" th:field="*{bankAccountName}" placeholder="KHMER MARKET CO., LTD" required>
+                                <div class="form-text small">Official registered name matching bank records.</div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold small" for="bankBranch">Branch / Operational Location</label>
+                                <input type="text" name="bankBranch" id="bankBranch" class="form-control" th:field="*{bankBranch}" placeholder="Central Head Office, Phnom Penh">
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold small" for="bakongMerchantId">Bakong KHQR Merchant ID</label>
+                                <input type="text" name="bakongMerchantId" id="bakongMerchantId" class="form-control font-monospace" th:field="*{bakongMerchantId}" placeholder="khmer_market_master@aba">
+                            </div>
+                        </div>
+
+                        <!-- Payment Gateway & API Credentials -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <h6 class="text-uppercase text-muted fw-bold small border-bottom pb-2 mb-3">2. Payment Gateway & Webhook Integration</h6>
+                            </div>
+
+                            <div class="col-12 col-md-3">
+                                <label class="form-label fw-semibold small" for="bankEnvironment">Gateway Environment</label>
+                                <select name="bankEnvironment" id="bankEnvironment" class="form-select" th:field="*{bankEnvironment}">
+                                    <option value="LIVE">LIVE (Production Gateway)</option>
+                                    <option value="SANDBOX">SANDBOX (Testing & Staging)</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold small" for="bankApiKey">Gateway Public / API Key</label>
+                                <input type="text" name="bankApiKey" id="bankApiKey" class="form-control font-monospace" th:field="*{bankApiKey}" placeholder="pk_live_aba_...">
+                            </div>
+
+                            <div class="col-12 col-md-5">
+                                <label class="form-label fw-semibold small" for="bankApiSecret">Gateway API Secret Key</label>
+                                <input type="password" name="bankApiSecret" id="bankApiSecret" class="form-control font-monospace" th:field="*{bankApiSecret}" placeholder="sk_live_aba_sec_...">
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold small" for="bankWebhookSecret">Webhook Signature Secret</label>
+                                <input type="password" name="bankWebhookSecret" id="bankWebhookSecret" class="form-control font-monospace" th:field="*{bankWebhookSecret}" placeholder="whsec_aba_...">
+                                <div class="form-text small">Used to verify genuine callback notifications from bank API.</div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold small">Platform Webhook Endpoint URL</label>
+                                <input type="text" class="form-control bg-light font-monospace" value="https://khmermarket.gov.kh/api/v1/payments/webhook" readonly>
+                                <div class="form-text small">Register this URL inside your bank merchant portal.</div>
+                            </div>
+                        </div>
+
+                        <!-- Escrow & Platform Monetization Rules -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <h6 class="text-uppercase text-muted fw-bold small border-bottom pb-2 mb-3">3. Escrow & Commission Business Rules</h6>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold small" for="escrowHoldDays">Escrow Auto-Confirmation Window (Days)</label>
+                                <div class="input-group">
+                                    <input type="number" min="1" max="30" name="escrowHoldDays" id="escrowHoldDays" class="form-control fw-bold" th:field="*{escrowHoldDays}" required>
+                                    <span class="input-group-text bg-light">Days</span>
+                                </div>
+                                <div class="form-text small">Standard escrow holding period. Buyers cannot refund during these days; auto-confirms upon expiration.</div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-semibold small" for="commissionPercentage">Platform Commission / Tax (%)</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" min="0.00" max="50.00" name="commissionPercentage" id="commissionPercentage" class="form-control fw-bold" th:field="*{commissionPercentage}" required>
+                                    <span class="input-group-text bg-light">%</span>
+                                </div>
+                                <div class="form-text small">Retained in platform master bank account upon release.</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 pt-2 border-top">
+                            <button type="submit" class="btn btn-admin-primary px-4 py-2 fw-bold rounded-pill shadow-sm">
+                                <i class="bi bi-shield-check me-1"></i> Save Platform Bank & Gateway Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Escrow Monitor & Release Manager -->
+            <div class="admin-card">
+                <div class="admin-card-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+                    <div>
+                        <h2 class="admin-card-title mb-0"><i class="bi bi-shield-lock text-warning me-2"></i>Escrow Holding & Auto-Confirmation Monitor</h2>
+                        <span class="small text-muted">Tracking orders in 7-day escrow hold and conversion to seller balances</span>
+                    </div>
+                    <form th:action="@{/admin/bank/auto-confirm}" method="post">
+                        <button type="submit" class="btn btn-sm btn-outline-warning text-dark fw-bold rounded-pill px-3 py-1 shadow-sm">
+                            <i class="bi bi-arrow-repeat me-1"></i> Run 7-Day Auto-Confirm Check Now
+                        </button>
+                    </form>
+                </div>
+                <div class="admin-card-body p-0">
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Buyer</th>
+                                    <th>Seller Farm</th>
+                                    <th>Order Total</th>
+                                    <th>Order Date</th>
+                                    <th>Auto-Release Date</th>
+                                    <th>Escrow Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(escrowOrders.content)}">
+                                    <td colspan="8" class="text-center py-4 text-muted">
+                                        <i class="bi bi-inbox fs-3 d-block mb-1"></i>
+                                        No orders in escrow yet.
+                                    </td>
+                                </tr>
+                                <tr th:each="order : ${escrowOrders.content}">
+                                    <td>
+                                        <a th:href="@{/admin/orders/{id}(id=${order.id})}" class="fw-bold text-decoration-none" th:text="${order.orderNumber}">KM-0001</a>
+                                    </td>
+                                    <td>
+                                        <div class="small fw-semibold" th:text="${order.buyer.fullName != null && !order.buyer.fullName.isEmpty() ? order.buyer.fullName : order.buyer.username}">Buyer Name</div>
+                                    </td>
+                                    <td>
+                                        <div class="small text-muted" th:text="${order.sellerFarmName}">Farm Name</div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-dark" th:text="'$' + ${#numbers.formatDecimal(order.totalAmount, 1, 'COMMA', 2, 'POINT')}">$0.00</span>
+                                    </td>
+                                    <td>
+                                        <span class="small text-muted" th:text="${order.createdAt != null ? #temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm') : 'N/A'}">2026-10-17</span>
+                                    </td>
+                                    <td>
+                                        <span class="small text-muted font-monospace" th:text="${order.escrowReleaseAt != null ? #temporals.format(order.escrowReleaseAt, 'yyyy-MM-dd HH:mm') : 'N/A'}">2026-10-24</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${order.escrowStatus == 'HELD'}" class="badge bg-warning-subtle text-warning border border-warning-subtle">
+                                            <i class="bi bi-clock-history me-1"></i>HELD (7-Day Lock)
+                                        </span>
+                                        <span th:if="${order.escrowStatus == 'RELEASED'}" class="badge bg-success-subtle text-success border border-success-subtle">
+                                            <i class="bi bi-check-circle-fill me-1"></i>RELEASED (Paid Seller)
+                                        </span>
+                                        <span th:if="${order.escrowStatus == 'REFUNDED'}" class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>REFUNDED
+                                        </span>
+                                        <span th:if="${order.escrowStatus == 'CANCELLED'}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                                            <i class="bi bi-x-circle me-1"></i>CANCELLED
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-flex justify-content-end gap-1">
+                                            <form th:if="${order.escrowStatus == 'HELD'}" th:action="@{/admin/bank/release/{id}(id=${order.id})}" method="post" onsubmit="return confirm('Release escrow funds early to seller website balance?');">
+                                                <button type="submit" class="btn btn-sm btn-success rounded-pill px-2 py-1 fw-semibold" title="Early Release to Seller">
+                                                    <i class="bi bi-check2"></i> Release Early
+                                                </button>
+                                            </form>
+                                            <a th:href="@{/admin/orders/{id}(id=${order.id})}" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" title="View Order Details">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

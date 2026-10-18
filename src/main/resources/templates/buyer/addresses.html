@@ -1,0 +1,121 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{address.title} + ' - ' + #{app.name}">Delivery Addresses - Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront.css}">
+</head>
+<body>
+    <div th:replace="~{layout/navbar :: navbar}"></div>
+
+    <main class="container py-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-muted" th:text="#{nav.home}">Home</a></li>
+                <li class="breadcrumb-item active text-success fw-bold" aria-current="page" th:text="#{address.title}">Addresses</li>
+            </ol>
+        </nav>
+
+        <h1 class="fw-bold fs-2 text-dark mb-4 d-flex align-items-center gap-2">
+            <i class="bi bi-geo-alt text-success"></i>
+            <span th:text="#{address.title}">Delivery Addresses</span>
+        </h1>
+
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}">Success</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}">Error</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row g-4">
+            <!-- Saved Addresses Cards -->
+            <div class="col-lg-7">
+                <div class="d-flex flex-column gap-3" th:if="${addresses != null and !addresses.isEmpty()}">
+                    <div class="bg-white p-4 rounded-4 border shadow-sm" th:each="addr : ${addresses}">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1" th:text="${addr.name}">Recipient Name</h5>
+                                <span th:if="${addr.default}" class="badge bg-success-subtle text-success border border-success-subtle small" th:text="#{address.default_badge}">Default</span>
+                            </div>
+                            <form th:action="@{/buyer/addresses/{id}/delete(id=${addr.id})}" method="post">
+                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Delete this address?');">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="text-secondary small">
+                            <div class="mb-1"><i class="bi bi-telephone text-success me-1"></i> <span th:text="${addr.phone}">012 345 678</span></div>
+                            <div><i class="bi bi-pin-map text-success me-1"></i> <span th:text="${addr.province}">Province</span>, <span th:text="${addr.address}">Street / Village</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center py-5 bg-white rounded-4 border shadow-sm" th:if="${addresses == null or addresses.isEmpty()}">
+                    <i class="bi bi-geo-alt display-2 text-muted"></i>
+                    <h5 class="fw-bold mt-3 text-dark">No delivery address saved.</h5>
+                    <p class="text-secondary small">Add an address using the form to speed up your checkout.</p>
+                </div>
+            </div>
+
+            <!-- Add New Address Form -->
+            <div class="col-lg-5">
+                <div class="bg-white p-4 rounded-4 border shadow-sm">
+                    <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                        <i class="bi bi-plus-circle text-success me-1"></i>
+                        <span th:text="#{address.add_new}">Add Delivery Address</span>
+                    </h5>
+
+                    <form th:action="@{/buyer/addresses}" method="post" th:object="${addressDto}">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold" th:text="#{address.full_name}">Recipient Name</label>
+                            <input type="text" th:field="*{name}" class="form-control" placeholder="e.g. Chan Sokha" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold" th:text="#{address.phone}">Phone Number</label>
+                            <input type="text" th:field="*{phone}" class="form-control" placeholder="012 888 999" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold" th:text="#{address.province}">Province</label>
+                            <select th:field="*{province}" class="form-select" required>
+                                <option value="Battambang">Battambang</option>
+                                <option value="Kampot">Kampot</option>
+                                <option value="Siem Reap">Siem Reap</option>
+                                <option value="Kandal">Kandal</option>
+                                <option value="Pursat">Pursat</option>
+                                <option value="Takeo">Takeo</option>
+                                <option value="Kampong Cham">Kampong Cham</option>
+                                <option value="Phnom Penh" selected>Phnom Penh</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold" th:text="#{address.address_line}">Detailed Address</label>
+                            <textarea th:field="*{address}" class="form-control" rows="3" placeholder="House #, Street name, Village, Commune, District"></textarea>
+                        </div>
+
+                        <button type="submit" class="km-btn-primary w-100 py-2">
+                            <i class="bi bi-check-lg me-1"></i> Save Address
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

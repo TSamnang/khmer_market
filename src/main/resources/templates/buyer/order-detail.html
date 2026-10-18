@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}">
+    <title th:text="'Order ' + ${order.orderNumber} + ' - ' + #{app.name}">Order Details - Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront.css}">
+</head>
+<body>
+    <div th:replace="~{layout/navbar :: navbar}"></div>
+
+    <main class="container py-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-muted" th:text="#{nav.home}">Home</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/buyer/orders}" class="text-decoration-none text-muted" th:text="#{orders.title}">My Orders</a></li>
+                <li class="breadcrumb-item active text-success fw-bold" aria-current="page" th:text="${order.orderNumber}">KM-XXXX</li>
+            </ol>
+        </nav>
+
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}">Success</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}">Error</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Order Header Card -->
+        <div class="bg-white rounded-4 border shadow-sm p-4 mb-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center pb-3 border-bottom mb-4 gap-2">
+                <div>
+                    <h1 class="fw-bold fs-3 text-dark mb-1 d-flex align-items-center gap-2">
+                        <i class="bi bi-receipt text-success"></i>
+                        <span th:text="${order.orderNumber}">KM-20261015-ABCDEF</span>
+                    </h1>
+                    <span class="text-secondary small">Placed on <span th:text="${#temporals.format(order.createdAt, 'dd MMMM yyyy HH:mm')}">Date</span></span>
+                </div>
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline-dark rounded-pill px-3 py-2 fw-semibold shadow-sm d-inline-flex align-items-center gap-2"
+                            data-bs-toggle="modal" data-bs-target="#receiptModal">
+                        <i class="bi bi-printer fs-5 text-dark"></i>
+                        <span>Print Receipt</span>
+                    </button>
+                    <span class="km-badge km-badge-pending fs-6 py-2 px-3" th:if="${order.status.value == 'pending'}" th:text="#{orders.status.pending}">Pending</span>
+                    <span class="km-badge km-badge-confirmed fs-6 py-2 px-3" th:if="${order.status.value == 'confirmed'}" th:text="#{orders.status.confirmed}">Confirmed</span>
+                    <span class="km-badge km-badge-shipped fs-6 py-2 px-3" th:if="${order.status.value == 'shipped'}" th:text="#{orders.status.shipped}">Shipped</span>
+                    <span class="km-badge km-badge-delivered fs-6 py-2 px-3" th:if="${order.status.value == 'delivered'}" th:text="#{orders.status.delivered}">Delivered</span>
+                    <span class="km-badge km-badge-cancelled fs-6 py-2 px-3" th:if="${order.status.value == 'cancelled'}" th:text="#{orders.status.cancelled}">Cancelled</span>
+                </div>
+            </div>
+
+            <!-- 7-Day Escrow Protection Banner -->
+            <div class="alert alert-warning border-warning-subtle rounded-3 p-3 mb-4 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2" th:if="${order.isUnderEscrowHold()}">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-lock-fill text-warning fs-3"></i>
+                    <div>
+                        <strong class="text-dark">7-Day Escrow Protection Active</strong>
+                        <div class="small text-muted">Your payment is held safely in the Platform Master Bank. Auto-confirms and converts to farmer earnings on <span class="fw-bold text-dark font-monospace" th:text="${order.escrowReleaseAt != null ? #temporals.format(order.escrowReleaseAt, 'dd MMM yyyy HH:mm') : 'in 7 days'}">date</span>. Order cancellations and refunds are locked during this 7-day fulfillment window.</div>
+                    </div>
+                </div>
+                <span class="badge bg-warning text-dark py-2 px-3 align-self-start align-self-sm-center">
+                    <i class="bi bi-lock-fill me-1"></i>7-Day Escrow Lock
+                </span>
+            </div>
+
+            <!-- Order State Machine Visual Timeline -->
+            <div th:if="${order.status.value != 'cancelled'}" class="km-timeline">
+                <!-- Step 1: Pending -->
+                <div class="km-timeline-step" th:classappend="${order.status.value == 'pending' ? 'active' : 'completed'}">
+                    <div class="km-timeline-dot">
+                        <i class="bi bi-clock-history" th:if="${order.status.value == 'pending'}"></i>
+                        <i class="bi bi-check-lg" th:unless="${order.status.value == 'pending'}"></i>
+                    </div>
+                    <div class="km-timeline-label" th:text="#{orders.status.pending}">Pending</div>
+                </div>
+
+                <!-- Step 2: Confirmed -->
+                <div class="km-timeline-step" 
+                     th:classappend="${order.status.value == 'confirmed' ? 'active' : (order.status.value == 'shipped' or order.status.value == 'delivered' ? 'completed' : '')}">
+                    <div class="km-timeline-dot">
+                        <i class="bi bi-check-circle" th:if="${order.status.value == 'confirmed'}"></i>
+                        <i class="bi bi-check-lg" th:if="${order.status.value == 'shipped' or order.status.value == 'delivered'}"></i>
+                        <i class="bi bi-circle" th:if="${order.status.value == 'pending'}"></i>
+                    </div>
+                    <div class="km-timeline-label" th:text="#{orders.status.confirmed}">Confirmed</div>
+                </div>
+
+                <!-- Step 3: Shipped -->
+                <div class="km-timeline-step" 
+                     th:classappend="${order.status.value == 'shipped' ? 'active' : (order.status.value == 'delivered' ? 'completed' : '')}">
+                    <div class="km-timeline-dot">
+                        <i class="bi bi-truck" th:if="${order.status.value == 'shipped'}"></i>
+                        <i class="bi bi-check-lg" th:if="${order.status.value == 'delivered'}"></i>
+                        <i class="bi bi-circle" th:if="${order.status.value == 'pending' or order.status.value == 'confirmed'}"></i>
+                    </div>
+                    <div class="km-timeline-label" th:text="#{orders.status.shipped}">Shipped</div>
+                </div>
+
+                <!-- Step 4: Delivered -->
+                <div class="km-timeline-step" th:classappend="${order.status.value == 'delivered' ? 'active completed' : ''}">
+                    <div class="km-timeline-dot">
+                        <i class="bi bi-box-seam" th:if="${order.status.value != 'delivered'}"></i>
+                        <i class="bi bi-check-all" th:if="${order.status.value == 'delivered'}"></i>
+                    </div>
+                    <div class="km-timeline-label" th:text="#{orders.status.delivered}">Delivered</div>
+                </div>
+            </div>
+
+            <!-- Cancelled Timeline Notice -->
+            <div th:if="${order.status.value == 'cancelled'}" class="alert alert-danger d-flex align-items-center gap-3">
+                <i class="bi bi-x-octagon-fill fs-2"></i>
+                <div>
+                    <strong>This order was cancelled.</strong>
+                    <div class="small">Reserved inventory has been automatically restored to the farmer's stock.</div>
+                </div>
+            </div>
+
+            <!-- Buyer Actions: Confirm Delivery & Cancel Order -->
+            <div class="d-flex flex-wrap gap-3 mt-4 pt-3 border-top">
+                <!-- If SHIPPED: Buyer can confirm delivery -->
+                <form th:if="${order.status.value == 'shipped'}" th:action="@{/buyer/orders/{id}/confirm-delivery(id=${order.id})}" method="post">
+                    <button type="submit" class="btn btn-success fw-bold py-2 px-3 shadow-sm">
+                        <i class="bi bi-check2-circle me-1"></i> <span th:text="#{orders.confirm_delivery}">I Received My Delivery</span>
+                    </button>
+                    <span class="d-block small text-muted mt-1" th:text="#{orders.confirm_delivery_help}">Confirm only when packages have been delivered to your location.</span>
+                </form>
+
+                <!-- If PENDING: Buyer can cancel -->
+                <form th:if="${order.status.value == 'pending'}" th:action="@{/buyer/orders/{id}/cancel(id=${order.id})}" method="post">
+                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this order?');">
+                        <i class="bi bi-x-circle me-1"></i> <span th:text="#{orders.cancel_order}">Cancel Order</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Details Grid: Delivery Address & Farmer Information -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="bg-white rounded-4 border shadow-sm p-4 h-100">
+                    <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                        <i class="bi bi-geo-alt text-success me-1"></i>
+                        <span th:text="#{orders.delivery_address}">Delivery Address</span>
+                    </h5>
+                    <div th:if="${order.address != null}" class="text-secondary">
+                        <strong class="text-dark fs-6 d-block mb-1" th:text="${order.address.name}">Recipient Name</strong>
+                        <div class="mb-1"><i class="bi bi-telephone text-success me-1"></i> <span th:text="${order.address.phone}">012 345 678</span></div>
+                        <div><i class="bi bi-pin-map text-success me-1"></i> <span th:text="${order.address.province}">Province</span>, <span th:text="${order.address.address}">Street / Village</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="bg-white rounded-4 border shadow-sm p-4 h-100">
+                    <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                        <i class="bi bi-shop text-success me-1"></i>
+                        <span th:text="#{orders.seller}">Farmer Information</span>
+                    </h5>
+                    <div class="text-secondary">
+                        <strong class="text-dark fs-6 d-block mb-1" th:text="${order.seller != null ? (order.seller.farmerProfile != null ? order.seller.farmerProfile.farmName : 'Farm #' + order.seller.id) : 'Direct Farmer'}">Farm Name</strong>
+                        <div class="small mb-1 text-muted" th:if="${order.seller != null}">
+                            <i class="bi bi-person text-success me-1"></i>
+                            <span>Sold by:</span>
+                            <strong class="text-dark" th:text="${order.seller.farmerProfile != null && order.seller.farmerProfile.farmerName != null ? order.seller.farmerProfile.farmerName : (order.seller.fullName != null ? order.seller.fullName : order.seller.username)}">Seller Name</strong>
+                            <span class="text-muted" th:text="'(@' + ${order.seller.username} + ')'">(@user)</span>
+                        </div>
+                        <div class="small mb-2" th:if="${order.seller != null and order.seller.farmerProfile != null}">
+                            <i class="bi bi-geo-alt text-muted me-1"></i> <span th:text="${order.seller.farmerProfile.province}">Province</span>
+                        </div>
+                        <a th:if="${order.seller != null}" th:href="@{/farmers/{id}(id=${order.seller.id})}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-eye me-1"></i> <span th:text="#{product.view_farm}">Visit Farm Profile</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Table & Review Action -->
+        <div class="bg-white rounded-4 border shadow-sm p-4 mb-4">
+            <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                <i class="bi bi-basket2 text-success me-1"></i> Ordered Agricultural Items
+            </h5>
+
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light small text-uppercase text-secondary">
+                        <tr>
+                            <th>Produce</th>
+                            <th>Package</th>
+                            <th class="text-center">Qty</th>
+                            <th class="text-end">Unit Price</th>
+                            <th class="text-end">Subtotal</th>
+                            <th th:if="${order.status.value == 'delivered'}" class="text-center">Review</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item : ${order.items}">
+                            <td>
+                                <strong class="text-dark" th:text="${item.productPackage != null ? item.productPackage.product.name : 'Crop'}">Produce</strong>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-secondary border" th:text="${item.productPackage != null ? item.productPackage.packageName : ''}">1kg Bag</span>
+                            </td>
+                            <td class="text-center" th:text="${item.quantity}">1</td>
+                            <td class="text-end">$<span th:text="${item.unitPrice}">10.00</span></td>
+                            <td class="text-end fw-bold text-dark">$<span th:text="${item.subtotal}">10.00</span></td>
+                            
+                            <!-- Verified Review Trigger if Delivered -->
+                            <td th:if="${order.status.value == 'delivered'}" class="text-center">
+                                <span th:if="${itemReviewedMap[item.id]}" class="badge bg-success-subtle text-success border border-success-subtle">
+                                    <i class="bi bi-check-circle-fill"></i> Reviewed
+                                </span>
+                                <button th:unless="${itemReviewedMap[item.id]}" 
+                                        type="button" 
+                                        class="btn btn-outline-warning btn-sm fw-bold text-dark"
+                                        data-bs-toggle="modal" 
+                                        th:data-bs-target="'#reviewModal' + ${item.id}">
+                                    <i class="bi bi-star-fill text-warning me-1"></i> <span th:text="#{orders.write_review}">Write Review</span>
+                                </button>
+
+                                <!-- Review Modal for this Item -->
+                                <div th:unless="${itemReviewedMap[item.id]}" 
+                                     class="modal fade text-start" 
+                                     th:id="'reviewModal' + ${item.id}" 
+                                     tabindex="-1">
+                                    <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+                                        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+                                            <form th:action="@{/buyer/orders/{id}/review(id=${order.id})}" method="post">
+                                                <input type="hidden" name="orderItemId" th:value="${item.id}">
+                                                <div class="km-review-modal-header text-center position-relative">
+                                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    <div class="d-inline-flex align-items-center justify-content-center bg-warning text-white rounded-circle p-2 shadow-sm mb-2" style="width: 52px; height: 52px; font-size: 1.5rem;">
+                                                        <i class="bi bi-star-fill text-white"></i>
+                                                    </div>
+                                                    <h5 class="fw-bold text-dark mb-1" th:text="#{review.write_review}">Write a Product Review</h5>
+                                                    <p class="small text-muted mb-0" th:text="${item.produceName} + ' (' + ${item.packageName} + ')'"></p>
+                                                </div>
+                                                <div class="modal-body p-4">
+                                                    <!-- 5 Star Interactive Rating -->
+                                                    <div class="text-center p-3 bg-light rounded-3 mb-3 border">
+                                                        <label class="form-label small fw-bold text-dark text-uppercase d-block mb-1">Rate Star (1 - 5)</label>
+                                                        <div class="km-star-rating mb-1">
+                                                            <input type="radio" th:id="'od_star5_' + ${item.id}" name="rating" value="5" checked><label th:for="'od_star5_' + ${item.id}" title="5 Stars - Outstanding Quality"><i class="bi bi-star-fill"></i></label>
+                                                            <input type="radio" th:id="'od_star4_' + ${item.id}" name="rating" value="4"><label th:for="'od_star4_' + ${item.id}" title="4 Stars - Very Good"><i class="bi bi-star-fill"></i></label>
+                                                            <input type="radio" th:id="'od_star3_' + ${item.id}" name="rating" value="3"><label th:for="'od_star3_' + ${item.id}" title="3 Stars - Average Quality"><i class="bi bi-star-fill"></i></label>
+                                                            <input type="radio" th:id="'od_star2_' + ${item.id}" name="rating" value="2"><label th:for="'od_star2_' + ${item.id}" title="2 Stars - Below Expectations"><i class="bi bi-star-fill"></i></label>
+                                                            <input type="radio" th:id="'od_star1_' + ${item.id}" name="rating" value="1"><label th:for="'od_star1_' + ${item.id}" title="1 Star - Poor"><i class="bi bi-star-fill"></i></label>
+                                                        </div>
+                                                        <div class="small fw-semibold text-warning km-star-desc">⭐⭐⭐⭐⭐ Outstanding Quality! / គុណភាពល្អឥតខ្ចោះ</div>
+                                                    </div>
+
+                                                    <div class="mb-2">
+                                                        <label class="form-label small fw-bold text-dark mb-1" th:text="#{review.comment}">Your Review / មតិយោបល់</label>
+                                                        <textarea name="comment" class="form-control rounded-3" rows="3" placeholder="Share your experience with the freshness and packaging of this produce..."></textarea>
+                                                        <div class="form-text small text-muted">Your verified review will be displayed on the product catalog.</div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer border-top py-3 px-4 bg-light d-flex justify-content-between">
+                                                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="km-btn-primary rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center gap-2 border-0">
+                                                        <i class="bi bi-send-fill"></i>
+                                                        <span th:text="#{review.submit}">Submit Review</span>
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="fw-bold fs-6">
+                            <td colspan="4" class="text-end" th:text="#{cart.total}">Total Amount:</td>
+                            <td class="text-end text-success fs-5">$<span th:text="${order.totalAmount}">10.00</span></td>
+                            <td th:if="${order.status.value == 'delivered'}"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        <!-- Coffee-Shop Thermal Receipt Modal -->
+        <div th:replace="~{buyer/fragments/receipt-modal :: receiptModal(order=${order}, modalId='receiptModal')}"></div>
+
+        <!-- Auto Open Review Modal Trigger (after confirming delivery) -->
+        <div id="autoOpenReviewTrigger" th:if="${autoOpenReview}" class="d-none"></div>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/js/receipt-print.js}"></script>
+    <script th:src="@{/js/confirmation-review.js}"></script>
+</body>
+</html>

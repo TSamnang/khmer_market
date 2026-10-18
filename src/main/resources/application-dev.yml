@@ -1,0 +1,10 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+  jpa:
+    show-sql: false
+
+market:
+  payment:
+    simulation-enabled: true

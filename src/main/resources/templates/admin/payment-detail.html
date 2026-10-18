@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Inspection - Khmer Market Admin</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body class="admin-body">
+<div class="admin-wrapper">
+    <div th:replace="~{admin/fragments/sidebar :: sidebar}"></div>
+
+    <div class="admin-canvas">
+        <div th:replace="~{admin/fragments/topbar :: topbar('Payment Audit Record')}"></div>
+
+        <div class="admin-content">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <a th:href="@{/admin/payments}" class="btn btn-sm btn-admin-outline">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Payments Log
+                </a>
+                <span class="admin-badge fs-6" th:classappend="'admin-badge-' + ${#strings.toLowerCase(payment.paymentStatus.name())}" th:text="${payment.paymentStatus}">PAID</span>
+            </div>
+
+            <div class="row g-4">
+                <!-- Payment Record Card -->
+                <div class="col-12 col-lg-8">
+                    <div class="admin-card mb-4">
+                        <div class="admin-card-header">
+                            <h2 class="admin-card-title"><i class="bi bi-credit-card me-2 text-primary"></i>Transaction Attributes</h2>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="small text-muted d-block">Transaction ID</label>
+                                    <span class="font-monospace fs-5 fw-bold" th:text="${payment.transactionId != null ? payment.transactionId : 'N/A'}">TX-10023</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small text-muted d-block">Settled Amount</label>
+                                    <span class="fs-4 fw-bold text-success" th:text="'$' + ${#numbers.formatDecimal(payment.amount, 1, 'COMMA', 2, 'POINT')}">$10.00</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small text-muted d-block">Payment Method</label>
+                                    <span class="badge bg-light text-dark border fs-6" th:text="${payment.paymentMethod}">KHQR</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small text-muted d-block">Payment Status</label>
+                                    <span class="admin-badge" th:classappend="'admin-badge-' + ${#strings.toLowerCase(payment.paymentStatus.name())}" th:text="${payment.paymentStatus}">PAID</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small text-muted d-block">Recorded Timestamp</label>
+                                    <span class="small" th:text="${payment.paymentDate != null ? #temporals.format(payment.paymentDate, 'yyyy-MM-dd HH:mm:ss') : 'Pending confirmation'}">2026-10-15 14:00</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small text-muted d-block">Initiated At</label>
+                                    <span class="small text-muted" th:text="${payment.createdAt != null ? #temporals.format(payment.createdAt, 'yyyy-MM-dd HH:mm:ss') : 'N/A'}">2026-10-15 13:58</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Associated Order Card -->
+                <div class="col-12 col-lg-4">
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <h2 class="admin-card-title"><i class="bi bi-receipt me-2"></i>Associated Order</h2>
+                        </div>
+                        <div class="admin-card-body">
+                            <div class="mb-3">
+                                <label class="small text-muted d-block">Order Reference</label>
+                                <a th:href="@{/admin/orders/{id}(id=${payment.order.id})}" class="font-monospace fw-bold fs-6 text-primary" th:text="${payment.order.orderNumber}">KM-100</a>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small text-muted d-block">Buyer Account</label>
+                                <strong th:text="${payment.order.buyer.fullName}">Customer</strong>
+                                <div class="small text-muted" th:text="${payment.order.buyer.email}">mail@mail.com</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small text-muted d-block">Order Status</label>
+                                <span class="admin-badge" th:classappend="'admin-badge-' + ${#strings.toLowerCase(payment.order.status.name())}" th:text="${payment.order.status}">CONFIRMED</span>
+                            </div>
+                            <a th:href="@{/admin/orders/{id}(id=${payment.order.id})}" class="btn btn-sm btn-admin-outline w-100">
+                                Open Order Record
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

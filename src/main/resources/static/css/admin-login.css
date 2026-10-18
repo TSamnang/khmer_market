@@ -1,0 +1,156 @@
+@import url('kantumruy-pro.css');
+
+/* ==========================================================================
+   Khmer Marketplace - Admin Login Page Styling
+   Zero CDNs - Strict CSP Compliant
+   ========================================================================== */
+
+body {
+    background-color: #0f172a;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Kantumruy Pro', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.admin-login-card {
+    width: 384px;
+    max-width: 90%;
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 36px 32px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+.admin-logo-tile {
+    width: 64px;
+    height: 64px;
+    background-color: #4f46e5;
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+}
+
+.admin-login-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 4px 0;
+}
+
+.admin-login-sub {
+    font-size: 13px;
+    color: #94a3b8;
+    margin: 0 0 24px 0;
+}
+
+.admin-form-group {
+    text-align: left;
+    margin-bottom: 18px;
+}
+
+.admin-form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #cbd5e1;
+    margin-bottom: 6px;
+}
+
+.admin-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.admin-input-icon {
+    position: absolute;
+    left: 12px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+}
+
+.admin-input {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 11px 14px 11px 40px;
+    color: #ffffff;
+    font-size: 14px;
+    transition: all 0.15s ease;
+}
+
+.admin-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+.admin-btn {
+    width: 100%;
+    background-color: #4f46e5;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    margin-top: 8px;
+}
+
+.admin-btn:hover {
+    background-color: #4338ca;
+}
+
+.admin-alert {
+    background-color: rgba(239, 68, 68, 0.15);
+    border: 1px solid #ef4444;
+    color: #fca5a5;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.admin-locked-box {
+    background-color: rgba(245, 158, 11, 0.15);
+    border: 1px solid #f59e0b;
+    color: #fde68a;
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.admin-countdown {
+    font-size: 26px;
+    font-weight: 800;
+    color: #fbbf24;
+    font-variant-numeric: tabular-nums;
+    margin-top: 4px;
+}
+
+.admin-logout-alert {
+    background-color: rgba(16, 185, 129, 0.15);
+    border: 1px solid #10b981;
+    color: #6ee7b7;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 20px;
+}

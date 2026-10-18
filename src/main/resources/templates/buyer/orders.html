@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{orders.title} + ' - ' + #{app.name}">My Orders - Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront.css}">
+</head>
+<body>
+    <div th:replace="~{layout/navbar :: navbar}"></div>
+
+    <main class="container py-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-muted" th:text="#{nav.home}">Home</a></li>
+                <li class="breadcrumb-item active text-success fw-bold" aria-current="page" th:text="#{orders.title}">My Orders</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+            <h1 class="fw-bold fs-2 text-dark mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-receipt text-success"></i>
+                <span th:text="#{orders.title}">My Orders</span>
+            </h1>
+        </div>
+
+        <!-- Status Filter Tabs -->
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            <a th:href="@{/buyer/orders}" class="btn btn-sm rounded-pill px-3" 
+               th:classappend="${selectedStatus == null or selectedStatus == '' ? 'btn-success text-white fw-bold' : 'btn-light border'}">
+                All Orders
+            </a>
+            <a th:href="@{/buyer/orders(status='pending')}" class="btn btn-sm rounded-pill px-3" 
+               th:classappend="${selectedStatus == 'pending' ? 'btn-warning text-dark fw-bold' : 'btn-light border'}">
+                Pending
+            </a>
+            <a th:href="@{/buyer/orders(status='confirmed')}" class="btn btn-sm rounded-pill px-3" 
+               th:classappend="${selectedStatus == 'confirmed' ? 'btn-info text-white fw-bold' : 'btn-light border'}">
+                Confirmed
+            </a>
+            <a th:href="@{/buyer/orders(status='shipped')}" class="btn btn-sm rounded-pill px-3" 
+               th:classappend="${selectedStatus == 'shipped' ? 'btn-primary text-white fw-bold' : 'btn-light border'}">
+                Shipped
+            </a>
+            <a th:href="@{/buyer/orders(status='delivered')}" class="btn btn-sm rounded-pill px-3" 
+               th:classappend="${selectedStatus == 'delivered' ? 'btn-success text-white fw-bold' : 'btn-light border'}">
+                Delivered
+            </a>
+            <a th:href="@{/buyer/orders(status='cancelled')}" class="btn btn-sm rounded-pill px-3" 
+               th:classappend="${selectedStatus == 'cancelled' ? 'btn-danger text-white fw-bold' : 'btn-light border'}">
+                Cancelled
+            </a>
+        </div>
+
+        <!-- Orders Table / List -->
+        <div class="bg-white rounded-4 border shadow-sm p-3 p-md-4 mb-4" th:if="${orders != null and !orders.isEmpty()}">
+            <div class="table-responsive">
+                <table class="table align-middle table-hover mb-0">
+                    <thead class="table-light small text-uppercase text-secondary">
+                        <tr>
+                            <th th:text="#{orders.order_no}">Order No</th>
+                            <th th:text="#{orders.date}">Date</th>
+                            <th th:text="#{orders.seller}">Farmer</th>
+                            <th th:text="#{orders.status}">Status</th>
+                            <th class="text-end" th:text="#{orders.total}">Total</th>
+                            <th class="text-end" th:text="#{orders.actions}">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="order : ${orders.content}">
+                            <td>
+                                <strong class="text-dark" th:text="${order.orderNumber}">KM-20261015-ABCDEF</strong>
+                                <span class="d-block small text-muted" th:text="${order.items.size()} + ' items'"></span>
+                            </td>
+                            <td class="small text-secondary" th:text="${#temporals.format(order.createdAt, 'dd-MMM-yyyy HH:mm')}">15-Oct-2026</td>
+                            <td>
+                                <div class="fw-semibold text-dark">
+                                    <i class="bi bi-shop text-success me-1"></i>
+                                    <span th:text="${order.seller != null ? (order.seller.farmerProfile != null ? order.seller.farmerProfile.farmName : 'Farm #' + order.seller.id) : 'Direct Farmer'}">Farmer</span>
+                                </div>
+                                <div class="small text-muted" th:if="${order.seller != null}">
+                                    <i class="bi bi-person me-1"></i>
+                                    <span th:text="${order.seller.farmerProfile != null && order.seller.farmerProfile.farmerName != null ? order.seller.farmerProfile.farmerName : (order.seller.fullName != null ? order.seller.fullName : order.seller.username)}">Seller Name</span>
+                                    <span class="text-muted" th:text="'(@' + ${order.seller.username} + ')'">(@user)</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="km-badge km-badge-pending" th:if="${order.status.value == 'pending'}" th:text="#{orders.status.pending}">Pending</span>
+                                <span class="km-badge km-badge-confirmed" th:if="${order.status.value == 'confirmed'}" th:text="#{orders.status.confirmed}">Confirmed</span>
+                                <span class="km-badge km-badge-shipped" th:if="${order.status.value == 'shipped'}" th:text="#{orders.status.shipped}">Shipped</span>
+                                <span class="km-badge km-badge-delivered" th:if="${order.status.value == 'delivered'}" th:text="#{orders.status.delivered}">Delivered</span>
+                                <span class="km-badge km-badge-cancelled" th:if="${order.status.value == 'cancelled'}" th:text="#{orders.status.cancelled}">Cancelled</span>
+                            </td>
+                            <td class="text-end fw-bold text-dark fs-6">
+                                $<span th:text="${order.totalAmount}">25.00</span>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1 align-items-center">
+                                    <button type="button" class="btn btn-sm btn-outline-dark rounded-pill px-2 py-1 shadow-sm d-inline-flex align-items-center gap-1"
+                                            data-bs-toggle="modal" th:data-bs-target="'#receiptModal' + ${order.id}"
+                                            title="Print Coffee-Shop Receipt">
+                                        <i class="bi bi-printer text-dark"></i>
+                                        <span>Receipt</span>
+                                    </button>
+                                    <a th:href="@{/buyer/orders/{id}(id=${order.id})}" class="btn btn-outline-success btn-sm rounded-pill px-3 py-1">
+                                        <i class="bi bi-eye me-1"></i> <span th:text="#{orders.detail}">Details</span>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Receipt Modals for Orders in the list -->
+        <th:block th:if="${orders != null and !orders.isEmpty()}" th:each="order : ${orders.content}">
+            <div th:replace="~{buyer/fragments/receipt-modal :: receiptModal(order=${order}, modalId='receiptModal' + ${order.id})}"></div>
+        </th:block>
+
+        <!-- Empty State -->
+        <div class="text-center py-5 bg-white rounded-4 border shadow-sm my-4" th:if="${orders == null or orders.isEmpty()}">
+            <i class="bi bi-receipt display-1 text-muted"></i>
+            <h4 class="fw-bold mt-3 text-dark" th:text="#{orders.empty}">No orders found.</h4>
+            <p class="text-secondary small">Start shopping fresh produce directly harvested by Cambodian farmers!</p>
+            <a th:href="@{/products}" class="km-btn-primary mt-2">
+                <i class="bi bi-basket2"></i> <span th:text="#{cart.start_shopping}">Browse Products</span>
+            </a>
+        </div>
+
+        <!-- Pagination -->
+        <nav class="mt-4" th:if="${totalPages > 1}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link" th:href="@{/buyer/orders(page=${currentPage - 1}, status=${selectedStatus})}">&laquo;</a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link" th:href="@{/buyer/orders(page=${i}, status=${selectedStatus})}" th:text="${i + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                    <a class="page-link" th:href="@{/buyer/orders(page=${currentPage + 1}, status=${selectedStatus})}">&raquo;</a>
+                </li>
+            </ul>
+        </nav>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/js/receipt-print.js}"></script>
+</body>
+</html>

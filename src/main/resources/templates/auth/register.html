@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{auth.register.title} + ' - ' + #{app.name}">Register - Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+    <header class="auth-header">
+        <a th:href="@{/}" class="auth-logo">
+            <div class="auth-logo-badge">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
+                    <path d="M3 6h18"></path>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+            </div>
+            <span th:text="#{app.name}">Khmer Marketplace</span>
+        </a>
+        <div>
+            <a th:if="${#locale.language == 'km'}" th:href="@{/register(lang='en')}" class="lang-switch-btn">English</a>
+            <a th:if="${#locale.language != 'km'}" th:href="@{/register(lang='km')}" class="lang-switch-btn">ភាសាខ្មែរ</a>
+        </div>
+    </header>
+
+    <main class="auth-container">
+        <div class="auth-card auth-card-wide">
+            <h1 class="auth-title" th:text="#{auth.register.title}">Create an Account</h1>
+            <p class="auth-subtitle" th:text="#{auth.register.subtitle}">Join Khmer Marketplace as a Buyer or a Farmer</p>
+
+            <div th:if="${errorMessage}" class="alert-box alert-danger">
+                <span th:text="${errorMessage}">Registration error</span>
+            </div>
+
+            <form th:action="@{/register}" th:object="${registerDto}" method="post">
+                <!-- Role Selection -->
+                <div class="form-group">
+                    <label class="form-label" th:text="#{auth.register.role}">I want to register as</label>
+                    <div class="role-tabs">
+                        <label class="role-tab-label" id="tab-role-buyer" th:classappend="${registerDto.role == null or registerDto.role == 'buyer'} ? 'active' : ''">
+                            <input type="radio" id="role-buyer" th:field="*{role}" value="buyer" style="display: none;">
+                            <div class="role-tab-header">
+                                <div class="role-tab-header-left">
+                                    <span class="role-icon">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="8" cy="21" r="1"></circle>
+                                            <circle cx="19" cy="21" r="1"></circle>
+                                            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+                                        </svg>
+                                    </span>
+                                    <span class="role-title" th:text="#{auth.register.role_buyer}">Buyer</span>
+                                </div>
+                                <span class="role-radio-badge">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </span>
+                            </div>
+                            <span class="role-desc">Purchase fresh farm products directly</span>
+                        </label>
+                        <label class="role-tab-label" id="tab-role-farmer" th:classappend="${registerDto.role == 'farmer'} ? 'active' : ''">
+                            <input type="radio" id="role-farmer" th:field="*{role}" value="farmer" style="display: none;">
+                            <div class="role-tab-header">
+                                <div class="role-tab-header-left">
+                                    <span class="role-icon">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M7 20h10"></path>
+                                            <path d="M10 20c5.5-2.5.8-6.4 3-10"></path>
+                                            <path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"></path>
+                                            <path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"></path>
+                                        </svg>
+                                    </span>
+                                    <span class="role-title" th:text="#{auth.register.role_farmer}">Farmer</span>
+                                </div>
+                                <span class="role-radio-badge">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </span>
+                            </div>
+                            <span class="role-desc">Sell agricultural products from your farm</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="username" class="form-label" th:text="#{auth.register.username}">Username</label>
+                    <input type="text" id="username" th:field="*{username}" class="form-input" required autocomplete="username">
+                    <div th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="form-error"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email" class="form-label" th:text="#{auth.register.email}">Email Address</label>
+                    <input type="email" id="email" th:field="*{email}" class="form-input" required autocomplete="email">
+                    <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="form-error"></div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label for="fullName" class="form-label" th:text="#{auth.register.full_name}">Full Name</label>
+                        <input type="text" id="fullName" th:field="*{fullName}" class="form-input">
+                        <div th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="form-error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone" class="form-label" th:text="#{auth.register.phone}">Phone Number</label>
+                        <input type="text" id="phone" th:field="*{phone}" class="form-input">
+                        <div th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="form-error"></div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label for="register-password" class="form-label" th:text="#{auth.register.password}">Password (min 12 chars)</label>
+                        <div class="input-password-wrapper">
+                            <input type="password" id="register-password" th:field="*{password}" class="form-input" required autocomplete="new-password">
+                            <button type="button" class="btn-toggle-password" data-target="register-password" th:attr="data-label-show=#{auth.login.show_password}, data-label-hide=#{auth.login.hide_password}" th:text="#{auth.login.show_password}">Show</button>
+                        </div>
+                        <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="form-error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm-password" class="form-label" th:text="#{auth.register.confirm_password}">Confirm Password</label>
+                        <div class="input-password-wrapper">
+                            <input type="password" id="confirm-password" th:field="*{confirmPassword}" class="form-input" required autocomplete="new-password">
+                            <button type="button" class="btn-toggle-password" data-target="confirm-password" th:attr="data-label-show=#{auth.login.show_password}, data-label-hide=#{auth.login.hide_password}" th:text="#{auth.login.show_password}">Show</button>
+                        </div>
+                        <div th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="form-error"></div>
+                    </div>
+                </div>
+
+                <!-- Farmer Specific Fields -->
+                <div id="farmer-extra-fields" style="display: none; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 18px; margin-bottom: 20px;">
+                    <div style="font-size: 13px; color: #b45309; margin-bottom: 14px; font-weight: 600;" th:text="#{auth.register.farmer_pending_notice}">
+                        Note: Farmer accounts require administrative verification before publishing products.
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label for="farmName" class="form-label" th:text="#{auth.register.farm_name}">Farm Name</label>
+                            <input type="text" id="farmName" th:field="*{farmName}" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="province" class="form-label" th:text="#{auth.register.province}">Province</label>
+                            <input type="text" id="province" th:field="*{province}" class="form-input" placeholder="e.g. Battambang, Kampong Cham">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="farmDescription" class="form-label" th:text="#{auth.register.farm_description}">About your farm</label>
+                        <textarea id="farmDescription" th:field="*{farmDescription}" class="form-input" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" th:text="#{auth.register.submit}">Create Account</button>
+            </form>
+
+            <div class="auth-footer-links">
+                <span th:text="#{auth.register.has_account}">Already have an account?</span>
+                <a th:href="@{/login}" th:text="#{auth.login.submit}">Sign In</a>
+            </div>
+        </div>
+    </main>
+
+    <script th:src="@{/js/password-toggle.js}"></script>
+    <script th:src="@{/js/register.js}"></script>
+</body>
+</html>

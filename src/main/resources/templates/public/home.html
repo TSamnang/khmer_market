@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}">
+    <title th:text="${storeConfig != null and storeConfig.storeName != null ? storeConfig.storeName : #messages.msg('app.name')} + ' - ' + (${storeConfig != null and storeConfig.tagline != null ? storeConfig.tagline : #messages.msg('app.tagline')})">Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront.css}">
+</head>
+<body>
+    <!-- Navbar Fragment -->
+    <div th:replace="~{layout/navbar :: navbar}"></div>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="km-hero">
+            <div class="container position-relative">
+                <div class="row align-items-center">
+                    <div class="col-lg-7">
+                        <div class="km-hero-badge">
+                            <i class="bi bi-patch-check-fill text-warning"></i>
+                            <span th:text="${storeConfig != null and storeConfig.heroBadgeText != null ? storeConfig.heroBadgeText : #messages.msg('catalog.farmer_story')}">Direct from Cambodian Farmers to Your Table</span>
+                        </div>
+                        <h1 class="km-hero-title" th:text="${storeConfig != null and storeConfig.heroTitle != null ? storeConfig.heroTitle : #messages.msg('app.name')}">Khmer Marketplace</h1>
+                        <p class="km-hero-subtitle" th:text="${storeConfig != null and storeConfig.heroSubtitle != null ? storeConfig.heroSubtitle : #messages.msg('app.tagline')}">Direct Agricultural Marketplace from Cambodian Farmers</p>
+                        
+                        <div class="d-flex flex-wrap gap-3">
+                            <a th:href="@{/products}" class="btn btn-warning btn-lg fw-bold px-4 py-3 shadow-sm rounded-pill text-dark d-inline-flex align-items-center gap-2">
+                                <i class="bi bi-basket2-fill"></i>
+                                <span th:text="${storeConfig != null and storeConfig.heroPrimaryBtnText != null ? storeConfig.heroPrimaryBtnText : #messages.msg('catalog.browse_all')}">Browse All Products</span>
+                            </a>
+                            <a sec:authorize="isAnonymous()" th:href="@{/register(role='farmer')}" class="btn btn-outline-light btn-lg fw-semibold px-4 py-3 rounded-pill d-inline-flex align-items-center gap-2">
+                                <i class="bi bi-shop"></i>
+                                <span th:text="${storeConfig != null and storeConfig.heroSecondaryBtnText != null ? storeConfig.heroSecondaryBtnText : #messages.msg('auth.register.role_farmer')}">Sell as a Farmer</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 d-none d-lg-block text-center">
+                        <div class="p-4 bg-white bg-opacity-10 rounded-4 border border-white border-opacity-25 shadow-lg backdrop-blur">
+                            <i class="bi bi-flower1 display-1 text-warning"></i>
+                            <h4 class="text-white fw-bold mt-3">100% Local Agriculture</h4>
+                            <p class="text-light opacity-75 small mb-0">Organic produce, Battambang Jasmine Rice, Kampot Pepper, Siem Reap fruits and more.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Categories Section -->
+        <section class="container mb-5" th:if="${categories != null and !categories.isEmpty()}">
+            <div class="d-flex justify-content-between align-items-end mb-4">
+                <div>
+                    <h2 class="fw-bold fs-3 text-dark mb-1" th:text="#{catalog.explore_categories}">Explore Fresh Categories</h2>
+                    <p class="text-secondary small mb-0">Fresh produce harvested across Cambodia's agricultural provinces</p>
+                </div>
+                <a th:href="@{/products}" class="text-success fw-bold text-decoration-none d-inline-flex align-items-center gap-1">
+                    <span th:text="#{catalog.browse_all}">View All</span> <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3">
+                <div class="col" th:each="cat : ${categories}">
+                    <a th:href="@{/products(categoryId=${cat.id})}" class="km-card text-center p-3 text-decoration-none">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-success-subtle text-success rounded-circle mx-auto mb-2" style="width: 56px; height: 56px; font-size: 1.5rem;">
+                            <i class="bi bi-tag-fill"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-0 text-truncate" th:text="${cat.name}">Category</h6>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Harvest Products Grid -->
+        <section class="container mb-5">
+            <div class="d-flex justify-content-between align-items-end mb-4">
+                <div>
+                    <h2 class="fw-bold fs-3 text-dark mb-1" th:text="#{catalog.featured_products}">Featured Harvest</h2>
+                    <p class="text-secondary small mb-0">Direct from verified Cambodian farms</p>
+                </div>
+                <a th:href="@{/products}" class="text-success fw-bold text-decoration-none d-inline-flex align-items-center gap-1">
+                    <span th:text="#{catalog.browse_all}">Browse Catalog</span> <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" th:if="${featuredProducts != null and !featuredProducts.isEmpty()}">
+                <div class="col" th:each="product : ${featuredProducts}">
+                    <div class="km-card">
+                        <div class="km-product-img-wrap">
+                            <img th:if="${product.primaryImageUrl != null}" th:src="@{/uploads/{img}(img=${product.primaryImageUrl})}" th:alt="${product.name}" class="km-product-img">
+                            <div th:unless="${product.primaryImageUrl != null}" class="km-product-placeholder">
+                                <i class="bi bi-tree"></i>
+                            </div>
+                            <button type="button" class="km-fav-btn" th:data-product-id="${product.id}" title="Save to Favorites">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                        </div>
+
+                        <div class="km-card-body">
+                            <div class="km-product-category" th:text="${product.categoryName}">Category</div>
+                            <a th:href="@{/products/{id}(id=${product.id})}" class="km-product-title" th:text="${product.name}">Product Name</a>
+                            
+                            <div class="km-seller-details">
+                                <a th:href="@{/farmers/{id}(id=${product.sellerId})}" class="km-seller-tag" title="Visit Farm">
+                                    <i class="bi bi-shop text-success"></i>
+                                    <span class="fw-semibold" th:text="${product.sellerFarmName != null ? product.sellerFarmName : 'Direct Farm'}">Farm Name</span>
+                                    <span th:if="${product.province != null}" class="text-muted small">(&lrm;<span th:text="${product.province}"></span>)</span>
+                                </a>
+                                <div class="km-seller-user" title="Seller">
+                                    <i class="bi bi-person text-muted"></i>
+                                    <span>Sold by:</span>
+                                    <strong th:text="${product.sellerName != null ? product.sellerName : product.sellerUsername}">Farmer Name</strong>
+                                    <span class="text-muted small" th:if="${product.sellerUsername != null and (product.sellerName == null or !product.sellerName.equalsIgnoreCase(product.sellerUsername))}" th:text="'(@' + ${product.sellerUsername} + ')'">(@user)</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
+                                <div>
+                                    <span class="small text-muted d-block">From</span>
+                                    <span class="km-price-tag">$<span th:text="${product.minPrice}">10.00</span></span>
+                                </div>
+                                <a th:href="@{/products/{id}(id=${product.id})}" class="km-btn-primary py-2 px-3">
+                                    <i class="bi bi-eye"></i> <span th:text="#{catalog.select_package}">View</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center py-5 bg-white rounded-4 border" th:if="${featuredProducts == null or featuredProducts.isEmpty()}">
+                <i class="bi bi-basket display-3 text-secondary"></i>
+                <h5 class="fw-bold mt-3 text-dark" th:text="#{catalog.no_products_found}">No agricultural products available yet.</h5>
+                <p class="text-secondary small">Be the first farmer to publish fresh produce!</p>
+            </div>
+        </section>
+
+        <!-- Value Propositions -->
+        <section class="bg-light py-5 border-top border-bottom">
+            <div class="container">
+                <div class="row g-4 text-center">
+                    <div class="col-md-3">
+                        <div class="p-3">
+                            <i class="bi bi-flower1 display-5 text-success mb-3"></i>
+                            <h5 class="fw-bold">Direct from Farmers</h5>
+                            <p class="text-secondary small mb-0">Eliminate middlemen margins so farmers receive fair income and you get fresh crops.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3">
+                            <i class="bi bi-qr-code display-5 text-warning mb-3"></i>
+                            <h5 class="fw-bold">Bakong KHQR Payments</h5>
+                            <p class="text-secondary small mb-0">Pay instantly using any Cambodian banking app with instant payment reconciliation.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3">
+                            <i class="bi bi-shield-check display-5 text-primary mb-3"></i>
+                            <h5 class="fw-bold">Verified Farm Origins</h5>
+                            <p class="text-secondary small mb-0">Track farm province locations and genuine buyer reviews for total transparency.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3">
+                            <i class="bi bi-box-seam display-5 text-danger mb-3"></i>
+                            <h5 class="fw-bold">Multi-Vendor Delivery</h5>
+                            <p class="text-secondary small mb-0">Automated order splitting per farm ensures produce is packaged and shipped with care.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Fragment -->
+    <div th:replace="~{layout/footer :: footer}"></div>
+
+    <!-- Scripts (Zero inline scripts, strict CSP) -->
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/js/favorites.js}"></script>
+</body>
+</html>

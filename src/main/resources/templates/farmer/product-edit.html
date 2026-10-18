@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Edit ' + ${product.name} + ' - ' + #{app.name}">Edit Product - Khmer Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/storefront.css}">
+</head>
+<body>
+    <div th:replace="~{layout/navbar :: navbar}"></div>
+
+    <main class="container py-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a th:href="@{/farmer/dashboard}" class="text-decoration-none text-muted" th:text="#{farmer.dashboard}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/farmer/products}" class="text-decoration-none text-muted" th:text="#{farmer.products_mgmt}">Products</a></li>
+                <li class="breadcrumb-item active text-success fw-bold text-truncate" style="max-width: 250px;" th:text="${product.name}">Product</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+            <h1 class="fw-bold fs-2 text-dark mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-pencil-square text-success"></i>
+                <span th:text="${product.name}">Product Name</span>
+            </h1>
+
+            <a th:href="@{/products/{id}(id=${product.id})}" target="_blank" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-box-arrow-up-right me-1"></i> View in Storefront
+            </a>
+        </div>
+
+        <!-- Flash Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}">Success</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}">Error</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left: Edit Basic Information Form -->
+            <div class="col-lg-7">
+                <div class="bg-white p-4 rounded-4 border shadow-sm mb-4">
+                    <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                        <i class="bi bi-info-circle text-success me-1"></i> Basic Details
+                    </h5>
+
+                    <form th:action="@{/farmer/products/{id}/edit(id=${product.id})}" method="post" th:object="${productForm}">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold" th:text="#{farmer.category}">Category</label>
+                                <select th:field="*{categoryId}" class="form-select" required>
+                                    <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}" th:selected="${productForm.categoryId == cat.id}">Category</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Status</label>
+                                <select th:field="*{status}" class="form-select">
+                                    <option value="active" th:selected="${productForm.status == 'active'}">Active (Visible)</option>
+                                    <option value="inactive" th:selected="${productForm.status == 'inactive'}">Inactive (Hidden)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold" th:text="#{farmer.product_name}">Product Name</label>
+                            <input type="text" th:field="*{name}" class="form-control" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold">Description</label>
+                            <textarea th:field="*{description}" class="form-control" rows="4"></textarea>
+                        </div>
+
+                        <button type="submit" class="km-btn-primary">
+                            <i class="bi bi-check2 me-1"></i> Update Product Details
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Packaging Options & Inventory Table -->
+                <div class="bg-white p-4 rounded-4 border shadow-sm">
+                    <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-box2 text-success me-1"></i> <span th:text="#{farmer.packages}">Packaging & Stock</span></span>
+                        <button class="btn btn-outline-success btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#newPackageCollapse">
+                            <i class="bi bi-plus-lg me-1"></i> Add Package Option
+                        </button>
+                    </h5>
+
+                    <!-- Add New Package Collapse Form -->
+                    <div class="collapse mb-4" id="newPackageCollapse">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <h6 class="fw-bold text-dark mb-3">Add Packaging Option</h6>
+                            <form th:action="@{/farmer/products/{id}/packages(id=${product.id})}" method="post">
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Package Name</label>
+                                        <input type="text" name="packageName" class="form-control form-control-sm" placeholder="e.g. 10kg Bag" required>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold">Unit</label>
+                                        <select name="unit" class="form-select form-select-sm">
+                                            <option value="kg">kg</option>
+                                            <option value="g">g</option>
+                                            <option value="liter">liter</option>
+                                            <option value="box">box</option>
+                                            <option value="piece">piece</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Price ($)</label>
+                                        <input type="number" step="0.01" name="price" class="form-control form-control-sm" placeholder="15.00" required>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Initial Stock</label>
+                                        <input type="number" name="quantity" class="form-control form-control-sm" value="50" min="1" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-success btn-sm mt-2">Save Package</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Packages List -->
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th>Package</th>
+                                    <th>Price</th>
+                                    <th class="text-center">Stock / Reserved</th>
+                                    <th class="text-center">Available</th>
+                                    <th class="text-end">Quick Restock</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="pkg : ${product.packages}">
+                                    <td>
+                                        <strong class="text-dark d-block" th:text="${pkg.packageName}">1kg</strong>
+                                        <span class="small text-muted" th:text="${pkg.sku}">SKU-1</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">$<span th:text="${pkg.price}">10.00</span></strong>
+                                    </td>
+                                    <td class="text-center small">
+                                        <span class="fw-bold" th:text="${pkg.inventory != null ? pkg.inventory.quantity : 0}">50</span>
+                                        <span class="text-muted">(&lrm;res: <span th:text="${pkg.inventory != null ? pkg.inventory.reservedQuantity : 0}">0</span>)</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge" th:classappend="${pkg.availableQuantity > 5 ? 'bg-success' : (pkg.availableQuantity > 0 ? 'bg-warning text-dark' : 'bg-danger')}" 
+                                              th:text="${pkg.availableQuantity}">50</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <form th:action="@{/farmer/packages/{id}/inventory(id=${pkg.id})}" method="post" class="d-inline-flex gap-1 justify-content-end">
+                                            <input type="number" name="quantity" class="form-control form-control-sm text-center" style="width: 70px;" th:value="${pkg.inventory != null ? pkg.inventory.quantity + 20 : 50}" min="1">
+                                            <button type="submit" class="btn btn-outline-success btn-sm" title="Restock">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Image Gallery Management -->
+            <div class="col-lg-5">
+                <div class="bg-white p-4 rounded-4 border shadow-sm">
+                    <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                        <i class="bi bi-images text-success me-1"></i> Product Photos
+                    </h5>
+
+                    <!-- Image Upload Form -->
+                    <form th:action="@{/farmer/products/{id}/images(id=${product.id})}" method="post" enctype="multipart/form-data" class="mb-4 p-3 bg-light rounded-3 border">
+                        <label class="form-label small fw-bold">Upload Additional Photo</label>
+                        <input type="file" name="imageFile" class="form-control form-control-sm mb-2" accept="image/jpeg,image/png,image/webp" required>
+                        <div class="form-check form-check-inline small mb-2">
+                            <input class="form-check-input" type="checkbox" name="isPrimary" value="true" id="isPrimaryCheck">
+                            <label class="form-check-label" for="isPrimaryCheck">Set as Primary Display Image</label>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-sm w-100">
+                            <i class="bi bi-cloud-arrow-up-fill me-1"></i> Upload Image
+                        </button>
+                    </form>
+
+                    <!-- Current Images Grid -->
+                    <div class="row g-3" th:if="${product.images != null and !product.images.isEmpty()}">
+                        <div class="col-6" th:each="img : ${product.images}">
+                            <div class="position-relative rounded-3 overflow-hidden border shadow-sm">
+                                <img th:src="@{/uploads/{url}(url=${img.imageUrl})}" class="w-100 object-fit-cover" style="height: 120px;" alt="Product Photo">
+                                <span th:if="${img.primary}" class="position-absolute top-0 start-0 m-2 badge bg-success small">Primary</span>
+                                <form th:action="@{/farmer/products/{id}/images/{imgId}/delete(id=${product.id}, imgId=${img.id})}" method="post" class="position-absolute top-0 end-0 m-2">
+                                    <button type="submit" class="btn btn-danger btn-sm p-1 rounded-circle lh-1" onclick="return confirm('Delete this image?');" title="Delete Image">
+                                        <i class="bi bi-x fs-6"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center py-4 text-muted small" th:if="${product.images == null or product.images.isEmpty()}">
+                        <i class="bi bi-image display-4"></i>
+                        <p class="mt-2 mb-0">No photos uploaded yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+
+    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>
