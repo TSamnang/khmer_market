@@ -98,17 +98,21 @@ class CardPaymentAndSellerDetailsTest {
     }
 
     @Test
-    @DisplayName("CheckoutDto validation allows card and khqr, rejects cod and bank_transfer")
+    @DisplayName("CheckoutDto validation allows card and balance, rejects khqr, cod and bank_transfer")
     void testCheckoutDtoValidation() {
         CheckoutDto validCardDto = new CheckoutDto();
         validCardDto.setPaymentMethod("card");
         validCardDto.setCheckoutToken("valid-token");
         assertTrue(validator.validateProperty(validCardDto, "paymentMethod").isEmpty(), "card should be valid");
 
-        CheckoutDto validKhqrDto = new CheckoutDto();
-        validKhqrDto.setPaymentMethod("khqr");
-        validKhqrDto.setCheckoutToken("valid-token");
-        assertTrue(validator.validateProperty(validKhqrDto, "paymentMethod").isEmpty(), "khqr should be valid");
+        CheckoutDto validBalanceDto = new CheckoutDto();
+        validBalanceDto.setPaymentMethod("balance");
+        validBalanceDto.setCheckoutToken("valid-token");
+        assertTrue(validator.validateProperty(validBalanceDto, "paymentMethod").isEmpty(), "balance should be valid");
+
+        CheckoutDto invalidKhqrDto = new CheckoutDto();
+        invalidKhqrDto.setPaymentMethod("khqr");
+        assertFalse(validator.validateProperty(invalidKhqrDto, "paymentMethod").isEmpty(), "khqr must be rejected");
 
         CheckoutDto invalidCodDto = new CheckoutDto();
         invalidCodDto.setPaymentMethod("cod");

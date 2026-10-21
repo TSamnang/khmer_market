@@ -32,6 +32,16 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
+    public Page<Order> getBuyerUnreviewedOrders(Long buyerId, Pageable pageable) {
+        return orderRepository.findBuyerUnreviewedOrders(buyerId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public long countBuyerUnreviewedOrders(Long buyerId) {
+        return orderRepository.countBuyerUnreviewedOrders(buyerId);
+    }
+
+    @Transactional(readOnly = true)
     public Order getBuyerOrderDetail(Long orderId, Long buyerId) {
         return orderRepository.findByIdAndBuyerId(orderId, buyerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found or access denied"));

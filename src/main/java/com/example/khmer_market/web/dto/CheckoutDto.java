@@ -11,7 +11,7 @@ public class CheckoutDto {
     private AddressDto newAddress;
 
     @NotBlank(message = "Payment method is required")
-    @Pattern(regexp = "^(balance|card|khqr)$", message = "Invalid payment method")
+    @Pattern(regexp = "^(balance|card)$", message = "Invalid payment method")
     private String paymentMethod = "balance";
 
     @NotBlank(message = "Security token is required")

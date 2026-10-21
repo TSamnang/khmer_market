@@ -43,18 +43,42 @@ public class BuyerOrderController {
                              @RequestParam(defaultValue = "0") int page,
                              @RequestParam(defaultValue = "10") int size,
                              Model model) {
-        OrderStatus orderStatus = null;
-        if (status != null && !status.isBlank()) {
-            try {
-                orderStatus = OrderStatus.valueOf(status.trim().toUpperCase());
-            } catch (IllegalArgumentException ignored) {}
+        Long userId = userDetails.getUserId();
+        Pageable pageable = PageRequest.of(Math.max(0, page), size);
+        Page<Order> orders;
+
+        boolean isToReview = "to_review".equalsIgnoreCase(status);
+        if (isToReview) {
+            orders = orderService.getBuyerUnreviewedOrders(userId, pageable);
+        } else {
+            OrderStatus orderStatus = null;
+            if (status != null && !status.isBlank()) {
+                try {
+                    orderStatus = OrderStatus.valueOf(status.trim().toUpperCase());
+                } catch (IllegalArgumentException ignored) {}
+            }
+            orders = orderService.getBuyerOrders(userId, orderStatus, pageable);
         }
 
-        Pageable pageable = PageRequest.of(Math.max(0, page), size);
-        Page<Order> orders = orderService.getBuyerOrders(userDetails.getUserId(), orderStatus, pageable);
+        // Determine if each delivered order has unreviewed items
+        Map<Long, Boolean> orderHasUnreviewedMap = new HashMap<>();
+        for (Order o : orders.getContent()) {
+            if (o.getStatus() == OrderStatus.DELIVERED && o.getItems() != null && !o.getItems().isEmpty()) {
+                boolean hasUnreviewed = o.getItems().stream()
+                        .anyMatch(item -> !reviewRepository.existsByOrderItemId(item.getId()));
+                orderHasUnreviewedMap.put(o.getId(), hasUnreviewed);
+            } else {
+                orderHasUnreviewedMap.put(o.getId(), false);
+            }
+        }
+
+        long toReviewCount = orderService.countBuyerUnreviewedOrders(userId);
 
         model.addAttribute("orders", orders);
         model.addAttribute("selectedStatus", status);
+        model.addAttribute("isToReview", isToReview);
+        model.addAttribute("toReviewCount", toReviewCount);
+        model.addAttribute("orderHasUnreviewedMap", orderHasUnreviewedMap);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", orders.getTotalPages());
 
@@ -63,20 +87,32 @@ public class BuyerOrderController {
 
     @GetMapping("/{id}")
     public String orderDetail(@PathVariable Long id,
+                              @RequestParam(required = false) String action,
                               @AuthenticationPrincipal CustomUserDetails userDetails,
                               Model model) {
         Order order = orderService.getBuyerOrderDetail(id, userDetails.getUserId());
 
         // Check which items have already been reviewed
         Map<Long, Boolean> itemReviewedMap = new HashMap<>();
-        order.getItems().forEach(item -> {
-            boolean reviewed = reviewRepository.existsByOrderItemId(item.getId());
-            itemReviewedMap.put(item.getId(), reviewed);
-        });
+        boolean hasUnreviewed = false;
+        if (order.getItems() != null) {
+            for (com.example.khmer_market.domain.entity.OrderItem item : order.getItems()) {
+                boolean reviewed = reviewRepository.existsByOrderItemId(item.getId());
+                itemReviewedMap.put(item.getId(), reviewed);
+                if (!reviewed) {
+                    hasUnreviewed = true;
+                }
+            }
+        }
 
         model.addAttribute("order", order);
         model.addAttribute("itemReviewedMap", itemReviewedMap);
+        model.addAttribute("hasUnreviewedItems", hasUnreviewed);
         model.addAttribute("reviewDto", new ReviewDto());
+
+        if ("review".equalsIgnoreCase(action) && hasUnreviewed) {
+            model.addAttribute("autoOpenReview", true);
+        }
 
         return "buyer/order-detail";
     }
@@ -121,7 +157,18 @@ public class BuyerOrderController {
 
         try {
             reviewService.addReview(userDetails.getUserId(), reviewDto);
-            redirectAttributes.addFlashAttribute("successMessage", "Thank you! Your verified review has been published.");
+
+            // Check if there are remaining unreviewed items in this order
+            Order order = orderService.getBuyerOrderDetail(id, userDetails.getUserId());
+            boolean remainingUnreviewed = order.getItems() != null && order.getItems().stream()
+                    .anyMatch(item -> !reviewRepository.existsByOrderItemId(item.getId()));
+
+            if (remainingUnreviewed) {
+                redirectAttributes.addFlashAttribute("successMessage", "Review submitted! Please rate the remaining produce in this order.");
+                redirectAttributes.addFlashAttribute("autoOpenReview", true);
+            } else {
+                redirectAttributes.addFlashAttribute("successMessage", "Thank you! All items in this order have been reviewed.");
+            }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }

@@ -164,7 +164,7 @@
                         <div class="small" style="font-size: 0.78rem; line-height: 1.5;">
                             <div class="d-flex justify-content-between">
                                 <span class="text-secondary text-uppercase">PAYMENT METHOD:</span>
-                                <strong class="text-dark text-uppercase" th:text="${order.primaryPayment != null ? order.primaryPayment.paymentMethod.displayName : 'BAKONG KHQR / BALANCE'}">ACCOUNT BALANCE</strong>
+                                <strong class="text-dark text-uppercase" th:text="${order.primaryPayment != null ? order.primaryPayment.paymentMethod.displayName : 'CARD / BALANCE'}">ACCOUNT BALANCE</strong>
                             </div>
                             <div class="d-flex justify-content-between" th:if="${order.primaryPayment != null and order.primaryPayment.transactionId != null}">
                                 <span class="text-secondary text-uppercase">TRANSACTION REF:</span>

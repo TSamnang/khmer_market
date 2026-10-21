@@ -16,7 +16,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
     List<OrderItem> findBySellerId(Long sellerId);
 
-    @Query("SELECT oi FROM OrderItem oi WHERE oi.id = :id AND oi.order.buyer.id = :buyerId")
+    @Query("SELECT oi FROM OrderItem oi JOIN FETCH oi.order o JOIN FETCH o.buyer JOIN FETCH oi.productPackage pp JOIN FETCH pp.product WHERE oi.id = :id AND o.buyer.id = :buyerId")
     Optional<OrderItem> findByIdAndBuyerId(@Param("id") Long id, @Param("buyerId") Long buyerId);
 
     @Query("SELECT COUNT(oi) FROM OrderItem oi WHERE oi.productPackage.id = :packageId")

@@ -4,6 +4,8 @@ spring:
       on-profile: dev
   jpa:
     show-sql: false
+  thymeleaf:
+    cache: false
 
 market:
   payment:

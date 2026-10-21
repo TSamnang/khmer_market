@@ -181,14 +181,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
 
-            <!-- Action Buttons: Rate & Review, Print Receipt, View Orders, Continue Shopping -->
+            <!-- Action Buttons: Print Receipt, View Orders, Continue Shopping -->
             <div class="d-flex justify-content-center align-items-center flex-wrap gap-2 mb-2">
-                <button type="button" class="btn btn-warning btn-lg px-4 py-2 shadow-sm d-inline-flex align-items-center gap-2 text-dark fw-bold"
-                        data-bs-toggle="modal" data-bs-target="#reviewPromptModal"
-                        th:if="${hasUnreviewedItems}">
-                    <i class="bi bi-star-fill text-dark fs-5"></i>
-                    <span>Rate & Review Produce / វាយតម្លៃ</span>
-                </button>
                 <button type="button" class="btn btn-dark btn-lg px-4 py-2 shadow-sm d-inline-flex align-items-center gap-2" onclick="window.print()">
                     <i class="bi bi-printer-fill fs-5"></i>
                     <span>Print Receipt / បោះពុម្ពវិក្កយបត្រ</span>
@@ -418,89 +412,6 @@
                         <!-- Perforated bottom cut edge -->
                         <div class="receipt-jagged-bottom"></div>
                     </div>
-
-                    <!-- KHQR Dynamic Scan Box (shown only if KHQR payment was chosen) -->
-                    <div th:each="payment : ${order.payments}" th:if="${payment.paymentMethod.value == 'khqr' and payment.paymentStatus.value == 'pending'}" class="mt-3 p-3 bg-white rounded-3 border shadow-sm text-center no-print">
-                        <h6 class="fw-bold text-dark mb-2">
-                            <i class="bi bi-qr-code text-warning me-1"></i> Scan with Bakong or Any Banking App
-                        </h6>
-                        <img th:src="@{/api/payments/khqr/qr(orderNumber=${order.orderNumber})}" 
-                             alt="Bakong KHQR Code" 
-                             class="img-fluid rounded-3 border p-1 shadow-sm mb-2" style="max-width: 160px;">
-                        <p class="small text-secondary mb-2">Scan with ABA, Bakong, Acleda, or Wing to complete payment.</p>
-                        <a th:href="@{/dev/payments/simulate/{no}(no=${order.orderNumber})}" target="_blank" class="btn btn-warning btn-sm fw-bold">
-                            <i class="bi bi-play-circle-fill me-1"></i> Simulate KHQR Scan & Pay
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Post-Payment Review Popup Modal -->
-        <div class="modal fade no-print" id="reviewPromptModal" tabindex="-1" aria-labelledby="reviewPromptModalLabel" aria-hidden="true" th:if="${hasUnreviewedItems}">
-            <div class="modal-dialog modal-dialog-centered" style="max-width: 500px;">
-                <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
-                    <form th:action="@{/checkout/review}" method="post">
-                        <input type="hidden" name="ordersParam" th:value="${ordersParam}">
-                        
-                        <div class="km-review-modal-header text-center position-relative">
-                            <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
-                            <div class="d-inline-flex align-items-center justify-content-center bg-warning text-white rounded-circle p-2 shadow-sm mb-2" style="width: 56px; height: 56px; font-size: 1.75rem;">
-                                <i class="bi bi-star-fill text-white"></i>
-                            </div>
-                            <h5 class="fw-bold text-dark mb-1">Rate Your Purchase Experience</h5>
-                            <p class="small text-muted mb-0">Help Cambodian farmers with your feedback & star rating</p>
-                        </div>
-
-                        <div class="modal-body p-4">
-                            <!-- Produce Item Selector -->
-                            <div class="mb-3">
-                                <label class="form-label small fw-bold text-secondary text-uppercase mb-1">Select Produce to Review</label>
-                                <select name="orderItemId" class="form-select rounded-3 py-2 fw-semibold" required id="selectReviewOrderItem">
-                                    <th:block th:each="order : ${orders}">
-                                        <th:block th:each="item : ${order.items}">
-                                            <option th:unless="${itemReviewedMap[item.id]}" 
-                                                    th:value="${item.id}"
-                                                    th:text="${item.produceName} + ' (' + ${item.packageName} + ') - $' + ${item.unitPrice}">
-                                                Produce Item
-                                            </option>
-                                        </th:block>
-                                    </th:block>
-                                </select>
-                            </div>
-
-                            <!-- 5 Star Interactive Rating -->
-                            <div class="text-center p-3 bg-light rounded-3 mb-3 border">
-                                <label class="form-label small fw-bold text-dark text-uppercase d-block mb-1">Rate Star (1 - 5)</label>
-                                <div class="km-star-rating mb-1">
-                                    <input type="radio" id="cf_star5" name="rating" value="5" checked><label for="cf_star5" title="5 Stars - Outstanding Quality"><i class="bi bi-star-fill"></i></label>
-                                    <input type="radio" id="cf_star4" name="rating" value="4"><label for="cf_star4" title="4 Stars - Very Good"><i class="bi bi-star-fill"></i></label>
-                                    <input type="radio" id="cf_star3" name="rating" value="3"><label for="cf_star3" title="3 Stars - Average Quality"><i class="bi bi-star-fill"></i></label>
-                                    <input type="radio" id="cf_star2" name="rating" value="2"><label for="cf_star2" title="2 Stars - Below Expectations"><i class="bi bi-star-fill"></i></label>
-                                    <input type="radio" id="cf_star1" name="rating" value="1"><label for="cf_star1" title="1 Star - Poor"><i class="bi bi-star-fill"></i></label>
-                                </div>
-                                <div class="small fw-semibold text-warning km-star-desc" id="cf_starRatingDesc">⭐⭐⭐⭐⭐ Outstanding Quality! / គុណភាពល្អឥតខ្ចោះ</div>
-                            </div>
-
-                            <!-- Comment Textarea -->
-                            <div class="mb-3">
-                                <label class="form-label small fw-bold text-dark mb-1">Add Comment / Review (មតិយោបល់)</label>
-                                <textarea name="comment" class="form-control rounded-3" rows="3" 
-                                          placeholder="Write a comment about freshness, packaging, or farmer service..."></textarea>
-                                <div class="form-text small text-muted">Your verified review will be displayed on the product catalog.</div>
-                            </div>
-                        </div>
-
-                        <div class="modal-footer border-top py-3 px-4 bg-light d-flex justify-content-between">
-                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
-                                Maybe Later
-                            </button>
-                            <button type="submit" class="km-btn-primary rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center gap-2 border-0">
-                                <i class="bi bi-send-fill"></i>
-                                <span>Submit Review</span>
-                            </button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
@@ -521,6 +432,5 @@
     </div>
 
     <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
-    <script th:src="@{/js/confirmation-review.js}"></script>
 </body>
 </html>

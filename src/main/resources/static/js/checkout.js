@@ -61,7 +61,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const paymentCards = document.querySelectorAll('.km-payment-card');
     const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
     const cardDetailsBox = document.getElementById('cardDetailsBox');
-    const khqrInfoBox = document.getElementById('khqrInfoBox');
 
     function updatePaymentCards(method) {
         paymentCards.forEach(card => {
@@ -77,7 +76,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function updatePaymentInfo(method) {
         updatePaymentCards(method);
         if (cardDetailsBox) cardDetailsBox.classList.toggle('d-none', method !== 'card');
-        if (khqrInfoBox) khqrInfoBox.classList.toggle('d-none', method !== 'khqr');
     }
 
     paymentCards.forEach(card => {

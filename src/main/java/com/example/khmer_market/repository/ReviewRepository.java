@@ -20,10 +20,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     boolean existsByOrderItemId(Long orderItemId);
 
-    @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.product.id = :productId AND r.status = 'published'")
+    @Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.product.id = :productId AND r.status = com.example.khmer_market.domain.enums.ReviewStatus.PUBLISHED")
     Double getAverageRatingForProduct(@Param("productId") Long productId);
 
-    @Query("SELECT COUNT(r) FROM Review r WHERE r.product.id = :productId AND r.status = 'published'")
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.product.id = :productId AND r.status = com.example.khmer_market.domain.enums.ReviewStatus.PUBLISHED")
     long countPublishedReviewsForProduct(@Param("productId") Long productId);
 
     @Query("SELECT r FROM Review r WHERE " +

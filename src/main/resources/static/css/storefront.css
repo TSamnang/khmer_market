@@ -145,9 +145,29 @@ main {
   gap: 6px;
 }
 
-.km-nav-link:hover, .km-nav-link.active {
-  color: var(--km-primary);
-  background-color: var(--km-primary-subtle);
+.km-nav-link:hover,
+.km-nav-link.active,
+.km-nav-link.show,
+.km-nav-link[aria-expanded="true"],
+.nav-item.dropdown.show > .km-nav-link {
+  color: var(--km-primary) !important;
+  background-color: var(--km-primary-subtle) !important;
+}
+
+.km-nav-link.active .badge,
+.km-nav-link.show .badge,
+.km-nav-link[aria-expanded="true"] .badge,
+.nav-item.dropdown.show > .km-nav-link .badge,
+.km-nav-link.active .rounded-circle,
+.km-nav-link.show .rounded-circle,
+.km-nav-link[aria-expanded="true"] .rounded-circle {
+  background-color: var(--km-primary) !important;
+  color: #ffffff !important;
+  border-color: var(--km-primary) !important;
+}
+
+.dropdown-toggle > * {
+  pointer-events: none;
 }
 
 .km-cart-badge {
@@ -827,6 +847,15 @@ main {
 .km-star-rating label:hover ~ label,
 .km-star-rating input[type="radio"]:checked ~ label {
   color: #f59e0b;
+}
+
+.km-star-rating:hover label {
+  color: #cbd5e1;
+}
+
+.km-star-rating:hover label:hover,
+.km-star-rating:hover label:hover ~ label {
+  color: #f59e0b !important;
 }
 
 .km-star-rating label:hover {

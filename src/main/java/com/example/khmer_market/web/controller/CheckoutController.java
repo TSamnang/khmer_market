@@ -34,21 +34,15 @@ public class CheckoutController {
     private final CartService cartService;
     private final AddressService addressService;
     private final OrderRepository orderRepository;
-    private final com.example.khmer_market.service.ReviewService reviewService;
-    private final com.example.khmer_market.repository.ReviewRepository reviewRepository;
 
     public CheckoutController(CheckoutService checkoutService,
                               CartService cartService,
                               AddressService addressService,
-                              OrderRepository orderRepository,
-                              com.example.khmer_market.service.ReviewService reviewService,
-                              com.example.khmer_market.repository.ReviewRepository reviewRepository) {
+                              OrderRepository orderRepository) {
         this.checkoutService = checkoutService;
         this.cartService = cartService;
         this.addressService = addressService;
         this.orderRepository = orderRepository;
-        this.reviewService = reviewService;
-        this.reviewRepository = reviewRepository;
     }
 
     @GetMapping("/checkout")
@@ -165,54 +159,8 @@ public class CheckoutController {
             });
         }
 
-        java.util.Map<Long, Boolean> itemReviewedMap = new java.util.HashMap<>();
-        com.example.khmer_market.domain.entity.OrderItem firstUnreviewedItem = null;
-
-        for (Order o : orders) {
-            if (o.getItems() != null) {
-                for (com.example.khmer_market.domain.entity.OrderItem it : o.getItems()) {
-                    boolean reviewed = reviewRepository.existsByOrderItemId(it.getId());
-                    itemReviewedMap.put(it.getId(), reviewed);
-                    if (!reviewed && firstUnreviewedItem == null) {
-                        firstUnreviewedItem = it;
-                    }
-                }
-            }
-        }
-
         model.addAttribute("orders", orders);
         model.addAttribute("ordersParam", ordersParam);
-        model.addAttribute("itemReviewedMap", itemReviewedMap);
-        model.addAttribute("firstUnreviewedItem", firstUnreviewedItem);
-        model.addAttribute("hasUnreviewedItems", firstUnreviewedItem != null);
-        if (!model.containsAttribute("reviewDto")) {
-            com.example.khmer_market.web.dto.ReviewDto defaultDto = new com.example.khmer_market.web.dto.ReviewDto();
-            if (firstUnreviewedItem != null) {
-                defaultDto.setOrderItemId(firstUnreviewedItem.getId());
-                defaultDto.setRating(5);
-            }
-            model.addAttribute("reviewDto", defaultDto);
-        }
         return "buyer/confirmation";
-    }
-
-    @PostMapping("/checkout/review")
-    public String submitConfirmationReview(@RequestParam(name = "ordersParam") String ordersParam,
-                                           @Valid @ModelAttribute("reviewDto") com.example.khmer_market.web.dto.ReviewDto reviewDto,
-                                           BindingResult bindingResult,
-                                           @AuthenticationPrincipal CustomUserDetails userDetails,
-                                           RedirectAttributes redirectAttributes) {
-        if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Rating between 1 and 5 stars is required.");
-            return "redirect:/checkout/confirmation?orders=" + ordersParam;
-        }
-
-        try {
-            reviewService.addReview(userDetails.getUserId(), reviewDto);
-            redirectAttributes.addFlashAttribute("successMessage", "Thank you for your rating & review! Your feedback supports local farmers.");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-        }
-        return "redirect:/checkout/confirmation?orders=" + ordersParam;
     }
 }

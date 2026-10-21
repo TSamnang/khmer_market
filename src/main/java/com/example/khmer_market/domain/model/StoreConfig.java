@@ -11,7 +11,7 @@ public class StoreConfig {
 
     // 2. Announcement Banner
     private boolean announcementEnabled = true;
-    private String announcementText = "🎉 Free direct delivery from Cambodian farms across the kingdom for orders over $25! Zero transaction fees with Bakong KHQR.";
+    private String announcementText = "🎉 Free direct delivery from Cambodian farms across the kingdom for orders over $25! Instant digital payments via Card & Wallet Balance.";
     private String announcementBgClass = "bg-success"; // bg-success, bg-warning text-dark, bg-primary, bg-dark
 
     // 3. Hero Showcase

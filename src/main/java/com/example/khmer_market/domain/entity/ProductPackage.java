@@ -90,4 +90,16 @@ public class ProductPackage {
     public boolean isActive() {
         return this.status == PackageStatus.ACTIVE;
     }
+
+    public int getAvailableQuantity() {
+        return inventory != null ? inventory.getAvailableQuantity() : 0;
+    }
+
+    public int getAvailableStock() {
+        return getAvailableQuantity();
+    }
+
+    public int getQuantity() {
+        return inventory != null ? inventory.getQuantity() : 0;
+    }
 }

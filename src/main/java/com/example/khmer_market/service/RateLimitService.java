@@ -102,7 +102,7 @@ public class RateLimitService {
         addPrimaryPolicy("checkout", "Checkout Processing (/checkout)", "/checkout", "Order placement and payment authorization", defaultCheckoutCapacity, defaultCheckoutPeriod);
         addPrimaryPolicy("public-search", "Public Catalog Search (/products)", "/products", "Marketplace catalog browsing and keyword queries", defaultSearchCapacity, defaultSearchPeriod);
         addPrimaryPolicy("portal-routes", "Authenticated Portal Routes", "/admin/**, /farmer/**, /buyer/**", "Authenticated user portal navigation and operations", defaultPortalCapacity, defaultPortalPeriod);
-        addPrimaryPolicy("payment-webhook", "Payment Webhook (/api/payments/**)", "/api/payments/**", "Real-time payment gateway (Bakong KHQR) callbacks", defaultWebhookCapacity, defaultWebhookPeriod);
+        addPrimaryPolicy("payment-webhook", "Payment Webhook (/api/payments/**)", "/api/payments/**", "Real-time payment gateway callbacks", defaultWebhookCapacity, defaultWebhookPeriod);
 
         // 2. Supporting Protective Security Policies
         addAdditionalPolicy("forgot-password", "Password Reset (/forgot-password)", "/forgot-password", "Self-service password recovery requests", defaultForgotCapacity, defaultForgotPeriod);

@@ -238,7 +238,7 @@ public class StoreConfigService {
         config.setTagline("Direct Agricultural Marketplace from Cambodian Farmers");
         config.setBrandColor("#047857");
         config.setAnnouncementEnabled(true);
-        config.setAnnouncementText("🎉 Free direct delivery from Cambodian farms across the kingdom for orders over $25! Zero transaction fees with Bakong KHQR.");
+        config.setAnnouncementText("🎉 Free direct delivery from Cambodian farms across the kingdom for orders over $25! Instant digital payments via Card & Wallet Balance.");
         config.setAnnouncementBgClass("bg-success");
         config.setHeroBadgeText("Direct from Cambodian Farmers to Your Table");
         config.setHeroTitle("Fresh Agricultural Harvest Direct to Your Door");

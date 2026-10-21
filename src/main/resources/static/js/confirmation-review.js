@@ -1,36 +1,24 @@
 /**
- * Khmer Marketplace - Confirmation Review Popup
+ * Khmer Marketplace - Order Review Interaction Handler
  * Strict CSP Compliant (No inline scripts)
  */
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Auto-show the review popup modal if unreviewed items exist
-    const reviewModalEl = document.getElementById('reviewPromptModal');
-    if (reviewModalEl) {
-        // Only auto-show if not already submitted in this session
-        const autoShown = sessionStorage.getItem('km_review_prompt_shown');
-        if (!autoShown) {
-            setTimeout(function () {
-                const modal = new bootstrap.Modal(reviewModalEl);
-                modal.show();
-                sessionStorage.setItem('km_review_prompt_shown', 'true');
-            }, 600);
-        }
-    }
-
-    // 2. Auto-show review modal on order detail page if delivery was just confirmed
+    // 1. Auto-show review modal on order detail page when delivery was confirmed or when clicking "Review" from orders list
     const autoOpenOrderReview = document.getElementById('autoOpenReviewTrigger');
-    if (autoOpenOrderReview) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isReviewAction = urlParams.get('action') === 'review';
+
+    if (autoOpenOrderReview || isReviewAction) {
         const firstItemModal = document.querySelector('.modal[id^="reviewModal"]');
         if (firstItemModal) {
             setTimeout(function () {
                 const modal = new bootstrap.Modal(firstItemModal);
                 modal.show();
-            }, 500);
+            }, 350);
         }
     }
 
-    // 3. Interactive Star Rating Label Updates
-    const ratingInputs = document.querySelectorAll('.km-star-rating input[type="radio"]');
+    // 2. Interactive Star Rating Label Updates across all review modals
     const descriptions = {
         '5': '⭐⭐⭐⭐⭐ Outstanding Quality! / គុណភាពល្អឥតខ្ចោះ',
         '4': '⭐⭐⭐⭐ Very Good Quality! / គុណភាពល្អណាស់',
@@ -39,10 +27,11 @@ document.addEventListener('DOMContentLoaded', function () {
         '1': '⭐ Poor Quality / គុណភាពខ្សោយ'
     };
 
+    const ratingInputs = document.querySelectorAll('.km-star-rating input[type="radio"]');
     ratingInputs.forEach(function (radio) {
         radio.addEventListener('change', function () {
-            const modalBody = radio.closest('.modal-body') || document;
-            const desc = modalBody.querySelector('.km-star-desc') || document.getElementById('cf_starRatingDesc');
+            const container = radio.closest('.modal-body') || radio.closest('.text-center') || document;
+            const desc = container.querySelector('.km-star-desc');
             if (desc && descriptions[this.value]) {
                 desc.textContent = descriptions[this.value];
             }

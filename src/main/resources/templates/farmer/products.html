@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
@@ -71,14 +71,14 @@
                                 <div class="d-flex flex-wrap gap-1" th:if="${product.packages != null and !product.packages.isEmpty()}">
                                     <span class="badge bg-light text-dark border small" th:each="pkg : ${product.packages}">
                                         <strong th:text="${pkg.packageName}">1kg</strong>: $<span th:text="${pkg.price}">10.00</span>
-                                        <span class="text-muted ms-1">(&lrm;<span th:text="${pkg.availableQuantity}">50</span> left)</span>
+                                        <span class="text-muted ms-1">(<span th:text="${pkg.availableQuantity}">50</span> left)</span>
                                     </span>
                                 </div>
                                 <span class="small text-muted" th:if="${product.packages == null or product.packages.isEmpty()}">No packages added</span>
                             </td>
                             <td class="text-center">
-                                <span class="badge bg-success" th:if="${product.status.value == 'active'}">Active</span>
-                                <span class="badge bg-secondary" th:if="${product.status.value == 'inactive'}">Inactive</span>
+                                <span class="badge bg-success" th:if="${product.status != null and (product.status.value == 'active' or product.status.name() == 'ACTIVE')}">Active</span>
+                                <span class="badge bg-secondary" th:if="${product.status == null or product.status.value == 'inactive' or product.status.name() == 'INACTIVE'}">Inactive</span>
                             </td>
                             <td class="text-end">
                                 <div class="d-inline-flex gap-2">

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -93,8 +93,8 @@
                                         <div class="small text-muted" th:text="${r.user.username}">username</div>
                                     </td>
                                     <td>
-                                        <div class="text-warning">
-                                            <i class="bi bi-star-fill" th:each="i : ${#numbers.sequence(1, r.rating)}"></i>
+                                        <div>
+                                            <span th:if="${r.rating != null and r.rating > 0}" th:each="i : ${#numbers.sequence(1, r.rating)}"><i class="bi bi-star-fill text-warning"></i></span><span th:if="${r.rating != null and r.rating < 5}" th:each="i : ${#numbers.sequence(1, 5 - r.rating)}"><i class="bi bi-star text-muted"></i></span>
                                         </div>
                                     </td>
                                     <td class="small" style="max-width: 300px;">

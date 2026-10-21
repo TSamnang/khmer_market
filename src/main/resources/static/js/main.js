@@ -4,29 +4,51 @@
  */
 document.addEventListener('DOMContentLoaded', function () {
     // 1. Initialize and ensure all Bootstrap dropdown toggles respond smoothly
-    if (window.bootstrap && window.bootstrap.Dropdown) {
-        document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(function (toggleEl) {
+    document.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(function (toggleEl) {
+        if (window.bootstrap && window.bootstrap.Dropdown) {
             window.bootstrap.Dropdown.getOrCreateInstance(toggleEl);
-        });
-    }
+        }
 
-    // 2. Prevent '#' anchor jump on dropdown triggers
-    document.querySelectorAll('a.dropdown-toggle[href="#"]').forEach(function (anchor) {
-        anchor.addEventListener('click', function (e) {
+        toggleEl.addEventListener('click', function (e) {
             e.preventDefault();
+            e.stopPropagation();
+            if (window.bootstrap && window.bootstrap.Dropdown) {
+                var inst = window.bootstrap.Dropdown.getOrCreateInstance(this);
+                inst.toggle();
+            }
         });
-    });
 
-    // 3. Accessibility: Allow Space / Enter keyboard activation for dropdowns
-    document.querySelectorAll('.dropdown-toggle').forEach(function (btn) {
-        btn.addEventListener('keydown', function (e) {
+        toggleEl.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
+                e.stopPropagation();
                 if (window.bootstrap && window.bootstrap.Dropdown) {
-                    const inst = window.bootstrap.Dropdown.getOrCreateInstance(this);
+                    var inst = window.bootstrap.Dropdown.getOrCreateInstance(this);
                     inst.toggle();
                 }
             }
         });
     });
+
+    // 4. User Navigation Dropdown Active State & Current Item Highlight
+    var path = window.location.pathname;
+    var userDropdown = document.getElementById('userNavDropdown');
+    if (userDropdown) {
+        if (path.startsWith('/buyer') || path.startsWith('/farmer') || path.startsWith('/wallet') || path.startsWith('/admin')) {
+            userDropdown.classList.add('active');
+        }
+    }
+    var dropdownItems = document.querySelectorAll('#userNavDropdown + .dropdown-menu a.dropdown-item');
+    dropdownItems.forEach(function (item) {
+        var href = item.getAttribute('href');
+        if (href && (path === href || (href !== '/' && path.startsWith(href)))) {
+            item.classList.add('active', 'bg-success-subtle', 'text-success', 'fw-bold');
+        }
+    });
+
+    var productsLink = document.querySelector('a.km-nav-link[href$="/products"]');
+    if (productsLink && path.startsWith('/products')) {
+        productsLink.classList.add('active');
+    }
 });
+

@@ -25,12 +25,26 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"buyer", "address", "items"})
     Optional<Order> findByIdAndBuyerId(Long id, Long buyerId);
 
-    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"buyer", "address"})
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"buyer", "address", "items"})
     Page<Order> findByBuyerIdOrderByCreatedAtDesc(Long buyerId, Pageable pageable);
 
-    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"buyer", "address"})
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"buyer", "address", "items"})
     @Query("SELECT o FROM Order o WHERE o.buyer.id = :buyerId AND (:status IS NULL OR o.status = :status) ORDER BY o.createdAt DESC")
     Page<Order> findByBuyerIdAndStatus(@Param("buyerId") Long buyerId, @Param("status") OrderStatus status, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"buyer", "address", "items"})
+    @Query(value = "SELECT DISTINCT o FROM Order o JOIN o.items item LEFT JOIN item.review r " +
+           "WHERE o.buyer.id = :buyerId AND o.status = com.example.khmer_market.domain.enums.OrderStatus.DELIVERED " +
+           "AND r.id IS NULL ORDER BY o.createdAt DESC",
+           countQuery = "SELECT COUNT(DISTINCT o) FROM Order o JOIN o.items item LEFT JOIN item.review r " +
+           "WHERE o.buyer.id = :buyerId AND o.status = com.example.khmer_market.domain.enums.OrderStatus.DELIVERED " +
+           "AND r.id IS NULL")
+    Page<Order> findBuyerUnreviewedOrders(@Param("buyerId") Long buyerId, Pageable pageable);
+
+    @Query("SELECT COUNT(DISTINCT o) FROM Order o JOIN o.items item LEFT JOIN item.review r " +
+           "WHERE o.buyer.id = :buyerId AND o.status = com.example.khmer_market.domain.enums.OrderStatus.DELIVERED " +
+           "AND r.id IS NULL")
+    long countBuyerUnreviewedOrders(@Param("buyerId") Long buyerId);
 
     @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"buyer", "address"})
     @Query("SELECT DISTINCT o FROM Order o JOIN o.items item WHERE item.seller.id = :sellerId " +

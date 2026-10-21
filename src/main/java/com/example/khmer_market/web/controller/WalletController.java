@@ -62,7 +62,7 @@ public class WalletController {
     @PostMapping("/deposit")
     public String deposit(@AuthenticationPrincipal CustomUserDetails userDetails,
                           @RequestParam("amount") @NotNull @DecimalMin("0.01") BigDecimal amount,
-                          @RequestParam(value = "source", defaultValue = "Instant KHQR") String source,
+                          @RequestParam(value = "source", defaultValue = "Credit / Debit Card") String source,
                           RedirectAttributes redirectAttributes) {
         try {
             WalletTransaction tx = walletService.deposit(userDetails.getUserId(), amount, source, null);
