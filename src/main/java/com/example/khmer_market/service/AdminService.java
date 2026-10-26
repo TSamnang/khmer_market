@@ -257,6 +257,11 @@ public class AdminService {
     @Transactional
     public void approveFarmer(Long profileId, String adminUsername, String ip) {
         FarmerProfile profile = getFarmerProfile(profileId);
+        profile.setVerificationStatus("APPROVED");
+        profile.setVerifiedAt(LocalDateTime.now());
+        profile.setRejectionReason(null);
+        farmerProfileRepository.save(profile);
+
         User user = profile.getUser();
         user.setStatus(UserStatus.ACTIVE);
         userRepository.save(user);
@@ -268,6 +273,10 @@ public class AdminService {
     @Transactional
     public void rejectFarmer(Long profileId, String reason, String adminUsername, String ip) {
         FarmerProfile profile = getFarmerProfile(profileId);
+        profile.setVerificationStatus("REJECTED");
+        profile.setRejectionReason(reason != null ? reason.trim() : "Document verification failed");
+        farmerProfileRepository.save(profile);
+
         User user = profile.getUser();
         user.setStatus(UserStatus.SUSPENDED);
         userRepository.save(user);

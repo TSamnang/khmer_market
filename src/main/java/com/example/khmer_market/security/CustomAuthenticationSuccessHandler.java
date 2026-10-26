@@ -76,12 +76,32 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
     }
 
     private boolean isValidRedirect(String targetUrl, HttpServletRequest request) {
-        if (targetUrl == null) return false;
+        if (targetUrl == null || targetUrl.isBlank()) return false;
+
+        // Disallow static assets, images, and scripts from being post-login redirect destinations
+        String cleanUrl = targetUrl;
+        int queryIdx = cleanUrl.indexOf('?');
+        if (queryIdx != -1) {
+            cleanUrl = cleanUrl.substring(0, queryIdx);
+        }
+        int hashIdx = cleanUrl.indexOf('#');
+        if (hashIdx != -1) {
+            cleanUrl = cleanUrl.substring(0, hashIdx);
+        }
+        String lowerUrl = cleanUrl.toLowerCase();
+        if (lowerUrl.endsWith(".svg") || lowerUrl.endsWith(".png") || lowerUrl.endsWith(".jpg")
+                || lowerUrl.endsWith(".jpeg") || lowerUrl.endsWith(".gif") || lowerUrl.endsWith(".webp")
+                || lowerUrl.endsWith(".ico") || lowerUrl.endsWith(".css") || lowerUrl.endsWith(".js")
+                || lowerUrl.endsWith(".map") || lowerUrl.contains("/images/") || lowerUrl.contains("/img/")
+                || lowerUrl.contains("/static/") || lowerUrl.contains("/css/") || lowerUrl.contains("/js/")) {
+            return false;
+        }
+
         // Open redirect protection: relative same-site paths only
         if (targetUrl.startsWith("/") && !targetUrl.startsWith("//") && !targetUrl.startsWith("/\\")) {
             return !targetUrl.contains("/admin");
         }
         String serverName = request.getServerName();
-        return targetUrl.contains("://" + serverName);
+        return targetUrl.contains("://" + serverName) && !targetUrl.contains("/admin");
     }
 }

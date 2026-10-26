@@ -36,6 +36,30 @@ public class FarmerProfile {
     @Column(name = "farm_image", length = 255)
     private String farmImage;
 
+    @Column(name = "dob")
+    private java.time.LocalDate dob;
+
+    @Column(name = "id_type", length = 50)
+    private String idType;
+
+    @Column(name = "id_number", length = 100)
+    private String idNumber;
+
+    @Column(name = "id_front_image", length = 255)
+    private String idFrontImage;
+
+    @Column(name = "id_back_image", length = 255)
+    private String idBackImage;
+
+    @Column(name = "verification_status", length = 30, nullable = false)
+    private String verificationStatus = "PENDING";
+
+    @Column(name = "rejection_reason", length = 255)
+    private String rejectionReason;
+
+    @Column(name = "verified_at")
+    private LocalDateTime verifiedAt;
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -73,6 +97,42 @@ public class FarmerProfile {
 
     public String getFarmImage() { return farmImage; }
     public void setFarmImage(String farmImage) { this.farmImage = farmImage; }
+
+    public java.time.LocalDate getDob() { return dob; }
+    public void setDob(java.time.LocalDate dob) { this.dob = dob; }
+
+    public String getIdType() { return idType; }
+    public void setIdType(String idType) { this.idType = idType; }
+
+    public String getIdNumber() { return idNumber; }
+    public void setIdNumber(String idNumber) { this.idNumber = idNumber; }
+
+    public String getIdFrontImage() { return idFrontImage; }
+    public void setIdFrontImage(String idFrontImage) { this.idFrontImage = idFrontImage; }
+
+    public String getIdBackImage() { return idBackImage; }
+    public void setIdBackImage(String idBackImage) { this.idBackImage = idBackImage; }
+
+    public String getVerificationStatus() { return verificationStatus; }
+    public void setVerificationStatus(String verificationStatus) { this.verificationStatus = verificationStatus; }
+
+    public String getRejectionReason() { return rejectionReason; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
+
+    public LocalDateTime getVerifiedAt() { return verifiedAt; }
+    public void setVerifiedAt(LocalDateTime verifiedAt) { this.verifiedAt = verifiedAt; }
+
+    public boolean isApproved() {
+        return "APPROVED".equalsIgnoreCase(this.verificationStatus);
+    }
+
+    public boolean isPending() {
+        return "PENDING".equalsIgnoreCase(this.verificationStatus);
+    }
+
+    public boolean isRejected() {
+        return "REJECTED".equalsIgnoreCase(this.verificationStatus);
+    }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

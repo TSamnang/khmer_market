@@ -42,3 +42,41 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+function handleDepositMethodChange(val) {
+    const customFields = document.getElementById('customPaymentMethodFields');
+    if (!customFields) return;
+    if (val === 'NEW') {
+        customFields.style.display = 'block';
+    } else {
+        customFields.style.display = 'none';
+    }
+}
+
+function autofillWithdrawMethod(selectElem) {
+    if (!selectElem) return;
+    const selectedOption = selectElem.options[selectElem.selectedIndex];
+    if (!selectedOption || !selectedOption.value) return;
+
+    const accNum = selectedOption.value;
+    const provider = selectedOption.getAttribute('data-provider') || '';
+    const holder = selectedOption.getAttribute('data-holder') || '';
+
+    const accInput = document.getElementById('accountNumber');
+    const nameInput = document.getElementById('accountName');
+    const channelSelect = document.getElementById('withdrawChannel');
+
+    if (accInput) accInput.value = accNum;
+    if (nameInput && holder) nameInput.value = holder;
+
+    if (channelSelect && provider) {
+        for (let i = 0; i < channelSelect.options.length; i++) {
+            if (channelSelect.options[i].text.toLowerCase().includes(provider.toLowerCase()) ||
+                provider.toLowerCase().includes(channelSelect.options[i].text.toLowerCase())) {
+                channelSelect.selectedIndex = i;
+                break;
+            }
+        }
+    }
+}
+

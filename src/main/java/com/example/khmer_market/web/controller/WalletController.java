@@ -25,11 +25,20 @@ public class WalletController {
 
     private final WalletService walletService;
     private final com.example.khmer_market.service.StoreConfigService storeConfigService;
+    private final com.example.khmer_market.service.PaymentMethodService paymentMethodService;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public WalletController(WalletService walletService,
+                            com.example.khmer_market.service.StoreConfigService storeConfigService,
+                            @org.springframework.beans.factory.annotation.Autowired(required = false) com.example.khmer_market.service.PaymentMethodService paymentMethodService) {
+        this.walletService = walletService;
+        this.storeConfigService = storeConfigService;
+        this.paymentMethodService = paymentMethodService;
+    }
 
     public WalletController(WalletService walletService,
                             com.example.khmer_market.service.StoreConfigService storeConfigService) {
-        this.walletService = walletService;
-        this.storeConfigService = storeConfigService;
+        this(walletService, storeConfigService, null);
     }
 
     @GetMapping
@@ -55,6 +64,11 @@ public class WalletController {
         if (storeConfigService != null) {
             model.addAttribute("config", storeConfigService.getConfig());
         }
+        if (paymentMethodService != null) {
+            model.addAttribute("userPaymentMethods", paymentMethodService.getUserPaymentMethods(userId));
+        } else {
+            model.addAttribute("userPaymentMethods", java.util.Collections.emptyList());
+        }
 
         return "buyer/wallet";
     }
@@ -62,12 +76,34 @@ public class WalletController {
     @PostMapping("/deposit")
     public String deposit(@AuthenticationPrincipal CustomUserDetails userDetails,
                           @RequestParam("amount") @NotNull @DecimalMin("0.01") BigDecimal amount,
-                          @RequestParam(value = "source", defaultValue = "Credit / Debit Card") String source,
+                          @RequestParam(value = "paymentMethodId", required = false) Long paymentMethodId,
+                          @RequestParam(value = "source", required = false, defaultValue = "Credit / Debit Card") String source,
+                          @RequestParam(value = "saveMethod", defaultValue = "false") boolean saveMethod,
+                          @RequestParam(value = "customProvider", required = false) String customProvider,
+                          @RequestParam(value = "customAccountNumber", required = false) String customAccountNumber,
+                          @RequestParam(value = "customAccountHolderName", required = false) String customAccountHolderName,
                           RedirectAttributes redirectAttributes) {
         try {
-            WalletTransaction tx = walletService.deposit(userDetails.getUserId(), amount, source, null);
+            Long userId = userDetails.getUserId();
+            String effectiveSource = source;
+
+            if (paymentMethodId != null && paymentMethodService != null) {
+                var method = paymentMethodService.getPaymentMethod(paymentMethodId, userId);
+                effectiveSource = method.getProvider() + " (" + method.getMaskedAccountNumber() + ")";
+            } else if (saveMethod && customAccountNumber != null && !customAccountNumber.isBlank() && paymentMethodService != null) {
+                var dto = new com.example.khmer_market.web.dto.PaymentMethodDto();
+                dto.setMethodType(customProvider != null && (customProvider.contains("Card") || customProvider.contains("Visa")) ? "CARD" : "BANK_ACCOUNT");
+                dto.setProvider(customProvider != null && !customProvider.isBlank() ? customProvider : "ABA Bank");
+                dto.setAccountNumber(customAccountNumber.trim());
+                dto.setAccountHolderName(customAccountHolderName != null && !customAccountHolderName.isBlank() ? customAccountHolderName.trim() : userDetails.getFullName());
+                dto.setDefault(false);
+                var saved = paymentMethodService.savePaymentMethod(userId, dto);
+                effectiveSource = saved.getProvider() + " (" + saved.getMaskedAccountNumber() + ")";
+            }
+
+            WalletTransaction tx = walletService.deposit(userId, amount, effectiveSource, null);
             redirectAttributes.addFlashAttribute("successMessage",
-                    "Successfully deposited $" + tx.getAmount() + " to your account balance!");
+                    "Successfully deposited $" + tx.getAmount() + " from " + effectiveSource + " to your personal wallet!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }

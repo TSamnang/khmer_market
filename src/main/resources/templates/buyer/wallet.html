@@ -207,6 +207,7 @@
     </main>
 
     <!-- Deposit Modal -->
+    <!-- Deposit Modal -->
     <div class="modal fade" id="depositModal" tabindex="-1" aria-labelledby="depositModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 shadow">
@@ -221,7 +222,7 @@
                 </div>
                 <form th:action="@{/wallet/deposit}" method="post" id="depositForm">
                     <div class="modal-body py-3">
-                        <p class="text-secondary small mb-3">Add balance to your Khmer Market account instantly using your preferred deposit channel.</p>
+                        <p class="text-secondary small mb-3">Add balance to your Khmer Market personal wallet instantly using your saved payment method or bank card.</p>
                         
                         <!-- Quick Amount Buttons -->
                         <label class="form-label small fw-bold text-dark mb-1">Select Amount</label>
@@ -243,24 +244,68 @@
                             <div class="form-text small" id="depositKhrEstimate">≈ ៛205,000 KHR</div>
                         </div>
 
-                        <!-- Deposit Source Selection -->
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-dark" for="depositSource">Deposit Method</label>
-                            <select name="source" id="depositSource" class="form-select">
-                                <option value="Credit / Debit Card (Visa, Mastercard)" selected>Credit / Debit Card (Instant)</option>
-                                <option value="ABA Bank Transfer">ABA Bank Direct Transfer</option>
-                                <option value="Wing Bank Mobile">Wing Bank Mobile</option>
+                        <!-- Saved Payment Method Selection -->
+                        <div class="mb-3" th:if="${userPaymentMethods != null and !userPaymentMethods.isEmpty()}">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-bold text-dark mb-0" for="savedPaymentMethodSelect">
+                                    <i class="bi bi-wallet2 text-success me-1"></i>Pay With Saved Method
+                                </label>
+                                <a th:href="@{/buyer/settings?tab=payment-methods}" class="small text-success text-decoration-none">Manage Methods &rarr;</a>
+                            </div>
+                            <select name="paymentMethodId" id="savedPaymentMethodSelect" class="form-select" onchange="handleDepositMethodChange(this.value)">
+                                <option th:each="pm : ${userPaymentMethods}"
+                                        th:value="${pm.id}"
+                                        th:selected="${pm.isDefault}"
+                                        th:text="${pm.provider + ' (' + pm.maskedAccountNumber + ') - ' + pm.accountHolderName + (pm.isDefault ? ' [DEFAULT]' : '')}">
+                                    ABA Bank (•••• 1234)
+                                </option>
+                                <option value="NEW">+ Use Another Payment Method / Card...</option>
                             </select>
                         </div>
 
-                        <div class="p-3 bg-light rounded-3 border small text-muted">
-                            <div class="d-flex align-items-center gap-2 mb-1" th:if="${config != null}">
-                                <i class="bi bi-bank text-success fs-5"></i>
-                                <strong class="text-dark">Platform Master Bank:</strong>
-                                <span class="badge bg-success-subtle text-success" th:text="${config.bankName}">ABA Bank</span>
+                        <!-- Custom New Payment Method (Shown if no saved methods, or when user selects NEW) -->
+                        <div id="customPaymentMethodFields" th:style="${userPaymentMethods != null and !userPaymentMethods.isEmpty()} ? 'display: none;' : ''">
+                            <div class="p-3 bg-light rounded-3 border mb-3">
+                                <h6 class="fw-bold text-dark small mb-2"><i class="bi bi-credit-card me-1 text-success"></i>Enter Payment Details</h6>
+                                
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold text-dark">Payment Channel</label>
+                                    <select name="customProvider" id="customProvider" class="form-select form-select-sm">
+                                        <option value="ABA Bank">ABA Bank Direct</option>
+                                        <option value="ACLEDA Bank">ACLEDA Bank</option>
+                                        <option value="Wing Bank">Wing Bank</option>
+                                        <option value="Canadia Bank">Canadia Bank</option>
+                                        <option value="Bakong Wallet">Bakong Mobile Wallet</option>
+                                        <option value="Visa / Mastercard" selected>Visa / Mastercard Card</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold text-dark">Account / Card Number</label>
+                                    <input type="text" name="customAccountNumber" id="customAccountNumber" class="form-control form-control-sm" placeholder="e.g. 001 234 567 or 4111 2222 3333 4444">
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold text-dark">Account Holder Name</label>
+                                    <input type="text" name="customAccountHolderName" id="customAccountHolderName" class="form-control form-control-sm text-uppercase" th:value="${user.fullName != null && !user.fullName.isEmpty() ? user.fullName : user.username}" placeholder="CHAN SOKHA">
+                                </div>
+
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" name="saveMethod" value="true" id="saveMethodDepositCheck" checked>
+                                    <label class="form-check-label small fw-bold text-dark" for="saveMethodDepositCheck">Save this method to my account settings</label>
+                                </div>
                             </div>
-                            <div th:if="${config != null}">Account: <strong class="text-dark font-monospace" th:text="${config.bankAccountNumber}">001 888 999</strong> (<span th:text="${config.bankAccountName}">KHMER MARKET CO., LTD</span>)</div>
-                            <div class="text-secondary mt-1"><i class="bi bi-shield-lock-fill text-success me-1"></i> Funds deposit directly to platform master bank and convert instantly to website balance.</div>
+                        </div>
+
+                        <!-- Security Note (Replaces confusing platform owner bank) -->
+                        <div class="p-3 bg-success-subtle rounded-3 border border-success-subtle small">
+                            <div class="d-flex align-items-center gap-2 text-success-emphasis fw-bold mb-1">
+                                <i class="bi bi-shield-check fs-5 text-success"></i>
+                                <span>Direct & Secure Personal Deposit</span>
+                            </div>
+                            <div class="text-secondary">
+                                Funds are deducted directly from your personal account/card and credited instantly to your Khmer Market wallet for zero-fee shopping.
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer border-top-0 pt-0">
@@ -305,6 +350,21 @@
                             <div class="form-text small">Minimum withdrawal: $1.00. Funds arrive in your banking account within minutes.</div>
                         </div>
 
+                        <!-- Quick Pick Saved Bank Account -->
+                        <div class="mb-3" th:if="${userPaymentMethods != null and !userPaymentMethods.isEmpty()}">
+                            <label class="form-label small fw-bold text-dark">Quick Autofill from Saved Bank Account</label>
+                            <select id="quickFillWithdrawSelect" class="form-select form-select-sm" onchange="autofillWithdrawMethod(this)">
+                                <option value="">-- Select saved bank account to autofill --</option>
+                                <option th:each="pm : ${userPaymentMethods}"
+                                        th:value="${pm.accountNumber}"
+                                        th:data-provider="${pm.provider}"
+                                        th:data-holder="${pm.accountHolderName}"
+                                        th:text="${pm.provider + ' (' + pm.maskedAccountNumber + ') - ' + pm.accountHolderName}">
+                                    ABA Bank (•••• 1234)
+                                </option>
+                            </select>
+                        </div>
+
                         <!-- Payout Channel -->
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-dark" for="withdrawChannel">Withdrawal Destination</label>
@@ -329,8 +389,8 @@
                             <input type="text" name="accountName" id="accountName" class="form-control text-uppercase" th:value="${user.fullName != null && !user.fullName.isEmpty() ? user.fullName : user.username}" placeholder="CHAN SOKHA" required>
                         </div>
 
-                        <div class="p-2 bg-light rounded-3 border small text-muted" th:if="${config != null}">
-                            <i class="bi bi-bank text-primary me-1"></i> Payout will be transferred from Platform Master Bank (<strong th:text="${config.bankName}">ABA Bank</strong>) directly to your account.
+                        <div class="p-2 bg-light rounded-3 border small text-muted">
+                            <i class="bi bi-shield-check text-success me-1"></i> Payout is processed safely from escrow directly into your verified bank account.
                         </div>
                     </div>
                     <div class="modal-footer border-top-0 pt-0">
@@ -346,7 +406,6 @@
 
     <div th:replace="~{layout/footer :: footer}"></div>
 
-    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
     <script th:src="@{/js/wallet.js}"></script>
 </body>
 </html>

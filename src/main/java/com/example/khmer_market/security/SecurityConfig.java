@@ -135,7 +135,7 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/", "/home", "/products", "/products/**", "/farmers", "/farmers/**",
                     "/login", "/register", "/forgot-password", "/reset-password",
-                    "/error", "/error/**", "/static/**", "/css/**", "/js/**", "/fonts/**", "/vendor/**", "/webjars/**", "/favicon.ico",
+                    "/error", "/error/**", "/static/**", "/css/**", "/js/**", "/images/**", "/img/**", "/fonts/**", "/vendor/**", "/webjars/**", "/favicon.ico",
                     "/uploads/**", "/actuator/health",
                     "/api/payments/khqr/**",
                     "/dev/payments/simulate/**"

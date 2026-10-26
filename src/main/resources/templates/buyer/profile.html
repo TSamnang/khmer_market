@@ -1,116 +1,508 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+    th:lang="${#locale.language}">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="#{nav.profile} + ' - ' + #{app.name}">Profile - Khmer Marketplace</title>
+    <title>Account Settings & Profile - Khmer Marketplace</title>
     <link rel="stylesheet" th:href="@{/css/kantumruy-pro.css}">
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
     <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}">
     <link rel="stylesheet" th:href="@{/css/storefront.css}">
+    <style>
+        .settings-nav .nav-link {
+            color: #4b5563;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.25rem;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .settings-nav .nav-link:hover {
+            background-color: #f3f4f6;
+            color: #166534;
+        }
+
+        .settings-nav .nav-link.active {
+            background-color: #198754;
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(25, 135, 84, 0.2);
+        }
+
+        .payment-card {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .payment-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06) !important;
+        }
+    </style>
 </head>
-<body>
+
+<body class="bg-light">
     <div th:replace="~{layout/navbar :: navbar}"></div>
 
     <main class="container py-4">
         <!-- Breadcrumb -->
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb small">
-                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-muted" th:text="#{nav.home}">Home</a></li>
-                <li class="breadcrumb-item active text-success fw-bold" aria-current="page" th:text="#{nav.profile}">Profile</li>
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-muted">Home</a></li>
+                <li class="breadcrumb-item active text-success fw-bold" aria-current="page">Account Settings</li>
             </ol>
         </nav>
 
-        <h1 class="fw-bold fs-2 text-dark mb-4 d-flex align-items-center gap-2">
-            <i class="bi bi-person-gear text-success"></i>
-            <span th:text="#{nav.profile}">Account Profile & Password</span>
-        </h1>
+        <div
+            class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+            <div>
+                <h1 class="fw-bold fs-2 text-dark mb-1 d-flex align-items-center gap-2">
+                    <i class="bi bi-person-gear text-success"></i>
+                    <span th:text="#{nav.account_settings}">Account Settings & Profile</span>
+                </h1>
+                <p class="text-muted small mb-0">Manage your profile, password, saved bank accounts, and seller
+                    verification.</p>
+            </div>
+            <div sec:authorize="hasRole('BUYER')">
+                <a th:href="@{/become-seller}" class="btn btn-outline-success fw-bold rounded-pill px-3 shadow-sm">
+                    <i class="bi bi-shop me-1"></i> <span th:text="#{nav.become_seller}">Become a Seller (eKYC)</span>
+                </a>
+            </div>
+        </div>
 
         <!-- Flash Messages -->
-        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm"
+            role="alert">
             <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}">Success</span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm"
+            role="alert">
             <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${errorMessage}">Error</span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
-        <div class="row g-4">
-            <!-- Account Details Card -->
-            <div class="col-lg-5">
-                <div class="bg-white p-4 rounded-4 border shadow-sm h-100">
-                    <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">Account Information</h5>
 
-                    <div class="d-flex align-items-center gap-3 mb-4">
-                        <div class="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; font-size: 2rem;">
-                            <i class="bi bi-person-circle"></i>
-                        </div>
-                        <div>
-                            <h5 class="fw-bold text-dark mb-0" th:text="${user.fullName != null ? user.fullName : user.username}">Full Name</h5>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle small" th:text="${user.role.value}">BUYER</span>
+
+        <div class="tab-content">
+            <!-- TAB 1: Profile & Security -->
+            <div class="tab-pane fade"
+                th:classappend="${activeTab == null or activeTab == 'profile' or activeTab == 'password' ? 'show active' : ''}"
+                id="tab-profile" role="tabpanel">
+                <div class="row g-4">
+                    <!-- Account Details Card -->
+                    <div class="col-lg-5">
+                        <div class="bg-white p-4 rounded-4 border shadow-sm h-100">
+                            <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">Account Information</h5>
+
+                            <div class="d-flex align-items-center gap-3 mb-4">
+                                <div class="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center"
+                                    style="width: 64px; height: 64px; font-size: 2rem;">
+                                    <i class="bi bi-person-circle"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold text-dark mb-0"
+                                        th:text="${user.fullName != null ? user.fullName : user.username}">Full Name
+                                    </h5>
+                                    <div class="d-flex align-items-center gap-1 mt-1">
+                                        <span
+                                            class="badge bg-success-subtle text-success border border-success-subtle small"
+                                            th:text="${user.role.value}">BUYER</span>
+                                        <span th:if="${user.role.name() == 'FARMER'}"
+                                            class="badge bg-primary-subtle text-primary border border-primary-subtle small">Seller</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex flex-column gap-2 text-secondary small">
+                                <div><strong class="text-dark">Username:</strong> <span
+                                        th:text="${user.username}">username</span></div>
+                                <div><strong class="text-dark">Email:</strong> <span
+                                        th:text="${user.email}">user@market.kh</span></div>
+                                <div><strong class="text-dark">Phone:</strong> <span
+                                        th:text="${user.phone != null ? user.phone : 'Not provided'}">Phone</span></div>
+                                <div><strong class="text-dark">Account Status:</strong> <span class="badge bg-success"
+                                        th:text="${user.status.value}">Active</span></div>
+                                <div><strong class="text-dark">Member Since:</strong> <span
+                                        th:text="${user.createdAt != null ? #temporals.format(user.createdAt, 'dd-MMM-yyyy') : 'N/A'}">Date</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 p-3 bg-success-subtle rounded-3 border border-success-subtle">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="small text-success-emphasis fw-bold"><i class="bi bi-wallet2 me-1"></i>
+                                        Wallet Balance</span>
+                                    <span class="fs-5 fw-bold text-success">$<span
+                                            th:text="${#numbers.formatDecimal(user.balance != null ? user.balance : 0.00, 1, 'COMMA', 2, 'POINT')}">0.00</span></span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <span class="small text-muted">≈ ៛<span
+                                            th:text="${#numbers.formatDecimal((user.balance != null ? user.balance : 0.00) * 4100, 0, 'COMMA', 0, 'POINT')}">0</span>
+                                        KHR</span>
+                                    <a th:href="@{/wallet}" class="btn btn-success btn-sm rounded-pill px-3 fw-bold">
+                                        Deposit & Withdraw &rarr;
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="d-flex flex-column gap-2 text-secondary small">
-                        <div><strong class="text-dark">Username:</strong> <span th:text="${user.username}">username</span></div>
-                        <div><strong class="text-dark">Email:</strong> <span th:text="${user.email}">user@market.kh</span></div>
-                        <div><strong class="text-dark">Phone:</strong> <span th:text="${user.phone != null ? user.phone : 'Not provided'}">Phone</span></div>
-                        <div><strong class="text-dark">Account Status:</strong> <span class="badge bg-success" th:text="${user.status.value}">Active</span></div>
-                        <div><strong class="text-dark">Member Since:</strong> <span th:text="${#temporals.format(user.createdAt, 'dd-MMM-yyyy')}">Date</span></div>
-                    </div>
+                    <!-- Change Password Card -->
+                    <div class="col-lg-7">
+                        <div class="bg-white p-4 rounded-4 border shadow-sm">
+                            <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
+                                <i class="bi bi-shield-lock text-success me-1"></i>
+                                <span>Change Account Password</span>
+                            </h5>
 
-                    <div class="mt-4 p-3 bg-success-subtle rounded-3 border border-success-subtle">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="small text-success-emphasis fw-bold"><i class="bi bi-wallet2 me-1"></i> Account Balance</span>
-                            <span class="fs-5 fw-bold text-success">$<span th:text="${#numbers.formatDecimal(user.balance != null ? user.balance : 0.00, 1, 'COMMA', 2, 'POINT')}">0.00</span></span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <span class="small text-muted">≈ ៛<span th:text="${#numbers.formatDecimal((user.balance != null ? user.balance : 0.00) * 4100, 0, 'COMMA', 0, 'POINT')}">0</span> KHR</span>
-                            <a th:href="@{/wallet}" class="btn btn-success btn-sm rounded-pill px-3 fw-bold">
-                                Deposit & Withdraw &rarr;
-                            </a>
+                            <form th:action="@{/buyer/settings/change-password}" method="post"
+                                th:object="${changePasswordDto}">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Current Password</label>
+                                    <input type="password" th:field="*{currentPassword}" class="form-control" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">New Password (Min 12 Characters)</label>
+                                    <input type="password" th:field="*{newPassword}" class="form-control" required
+                                        minlength="12">
+                                    <div class="form-text small">Must be at least 12 characters and contain diverse
+                                        letters and numbers.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Confirm New Password</label>
+                                    <input type="password" th:field="*{confirmPassword}" class="form-control" required
+                                        minlength="12">
+                                </div>
+
+                                <button type="submit" class="km-btn-primary w-100 py-2">
+                                    <i class="bi bi-check2-circle me-1"></i> <span>Update Password</span>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Change Password Card -->
-            <div class="col-lg-7">
-                <div class="bg-white p-4 rounded-4 border shadow-sm">
-                    <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">
-                        <i class="bi bi-shield-lock text-success me-1"></i>
-                        <span th:text="#{auth.reset.title}">Change Password</span>
-                    </h5>
-
-                    <form th:action="@{/buyer/profile/change-password}" method="post" th:object="${changePasswordDto}">
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Current Password</label>
-                            <input type="password" th:field="*{currentPassword}" class="form-control" required>
+            <!-- TAB 2: Saved Payment Methods -->
+            <div class="tab-pane fade" th:classappend="${activeTab == 'payment-methods' ? 'show active' : ''}"
+                id="tab-payment" role="tabpanel">
+                <div class="bg-white p-4 p-md-5 rounded-4 border shadow-sm mb-4">
+                    <div
+                        class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 pb-3 border-bottom mb-4">
+                        <div>
+                            <h4 class="fw-bold text-dark mb-1">
+                                <i class="bi bi-wallet-fill text-success me-2"></i>My Saved Payment & Payout Methods
+                            </h4>
+                            <p class="text-muted small mb-0">Save your Cambodian bank accounts and debit/credit cards
+                                for 1-click deposits, quick checkout, and fast seller withdrawals.</p>
                         </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold" th:text="#{auth.reset.password}">New Password (Min 12 Characters)</label>
-                            <input type="password" th:field="*{newPassword}" class="form-control" required>
-                            <div class="form-text small">Must be at least 12 characters and not appear on known breached password lists.</div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold" th:text="#{auth.reset.confirm_password}">Confirm New Password</label>
-                            <input type="password" th:field="*{confirmPassword}" class="form-control" required>
-                        </div>
-
-                        <button type="submit" class="km-btn-primary w-100 py-2">
-                            <i class="bi bi-check2-circle me-1"></i> <span th:text="#{auth.reset.submit}">Update Password</span>
+                        <button type="button" class="btn btn-success fw-bold rounded-pill px-4 shadow-sm"
+                            data-bs-toggle="modal" data-bs-target="#addPaymentMethodModal">
+                            <i class="bi bi-plus-circle me-1"></i> Add Payment Method
                         </button>
-                    </form>
+                    </div>
+
+                    <!-- Payment Methods List -->
+                    <div th:if="${paymentMethods != null and !paymentMethods.isEmpty()}" class="row g-3">
+                        <div class="col-md-6" th:each="pm : ${paymentMethods}">
+                            <div class="payment-card p-4 rounded-4 border bg-white shadow-sm h-100 d-flex flex-column justify-content-between position-relative"
+                                th:classappend="${pm.default ? 'border-success border-2' : ''}">
+
+                                <div class="d-flex align-items-start justify-content-between mb-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-3 p-2 bg-light border d-flex align-items-center justify-content-center"
+                                            style="width: 48px; height: 48px;">
+                                            <i class="bi fs-4 text-primary" th:classappend="${pm.iconClass}"></i>
+                                        </div>
+                                        <div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <h6 class="fw-bold text-dark mb-0" th:text="${pm.provider}">ABA Bank
+                                                </h6>
+                                                <span th:if="${pm.default}"
+                                                    class="badge bg-success-subtle text-success border border-success-subtle small">Default</span>
+                                            </div>
+                                            <span class="text-muted small text-uppercase"
+                                                th:text="${pm.methodType == 'BANK_ACCOUNT' ? 'Bank Account' : 'Card'}">Bank
+                                                Account</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Delete Button -->
+                                    <form th:action="@{/buyer/settings/payment-methods/{id}/delete(id=${pm.id})}"
+                                        method="post" class="delete-payment-form"
+                                        data-confirm="Remove this saved payment method?">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle p-1"
+                                            style="width: 32px; height: 32px;" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div class="my-2">
+                                    <div class="fs-5 fw-bold text-dark font-monospace"
+                                        th:text="${pm.maskedAccountNumber}">•••• •••• •••• 9999</div>
+                                    <div class="text-muted small mt-1">
+                                        <span class="fw-bold text-secondary" th:text="${pm.accountHolderName}">FULL
+                                            NAME</span>
+                                        <span th:if="${pm.cardExpiry != null}"
+                                            class="ms-2 badge bg-light text-muted border"
+                                            th:text="'Exp ' + ${pm.cardExpiry}">Exp 12/28</span>
+                                    </div>
+                                </div>
+
+                                <div class="pt-3 mt-3 border-top d-flex align-items-center justify-content-between">
+                                    <div class="small text-muted">
+                                        Added <span
+                                            th:text="${pm.createdAt != null ? #temporals.format(pm.createdAt, 'dd MMM yyyy') : 'Recently'}">Date</span>
+                                    </div>
+                                    <form th:if="${!pm.default}"
+                                        th:action="@{/buyer/settings/payment-methods/{id}/default(id=${pm.id})}"
+                                        method="post">
+                                        <button type="submit"
+                                            class="btn btn-sm btn-link text-success p-0 fw-bold text-decoration-none">
+                                            <i class="bi bi-star me-1"></i> Make Default
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div th:if="${paymentMethods == null or paymentMethods.isEmpty()}" class="text-center py-5">
+                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                            style="width: 72px; height: 72px;">
+                            <i class="bi bi-credit-card text-muted fs-1"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1">No Saved Payment Methods Yet</h5>
+                        <p class="text-muted small mb-4 mx-auto" style="max-width: 420px;">
+                            Save your ABA Bank, ACLEDA, Wing, Canadia, Bakong account or debit/credit card so you can
+                            deposit balance and withdraw earnings without retyping numbers.
+                        </p>
+                        <button type="button" class="btn btn-success fw-bold rounded-pill px-4" data-bs-toggle="modal"
+                            data-bs-target="#addPaymentMethodModal">
+                            <i class="bi bi-plus-circle me-1"></i> Add Your First Method
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Supported Cambodian Providers Banner -->
+                <div class="p-4 bg-white rounded-4 border shadow-sm">
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-shield-check text-success me-2"></i>Bank &
+                        Gateway Compatibility</h6>
+                    <p class="small text-muted mb-3">Khmer Market supports all major Cambodian financial institutions
+                        for both deposits and withdrawals:</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-light text-dark border px-3 py-2 fw-semibold"><i
+                                class="bi bi-building me-1 text-primary"></i> ABA Bank</span>
+                        <span class="badge bg-light text-dark border px-3 py-2 fw-semibold"><i
+                                class="bi bi-building me-1 text-info"></i> ACLEDA Bank</span>
+                        <span class="badge bg-light text-dark border px-3 py-2 fw-semibold"><i
+                                class="bi bi-building me-1 text-warning"></i> Wing Bank</span>
+                        <span class="badge bg-light text-dark border px-3 py-2 fw-semibold"><i
+                                class="bi bi-building me-1 text-danger"></i> Canadia Bank</span>
+                        <span class="badge bg-light text-dark border px-3 py-2 fw-semibold"><i
+                                class="bi bi-qr-code-scan me-1 text-danger"></i> Bakong Wallet</span>
+                        <span class="badge bg-light text-dark border px-3 py-2 fw-semibold"><i
+                                class="bi bi-credit-card me-1 text-success"></i> Visa / Mastercard</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Seller & eKYC Verification -->
+            <div class="tab-pane fade" th:classappend="${activeTab == 'seller' ? 'show active' : ''}" id="tab-seller"
+                role="tabpanel">
+                <!-- If Not Seller -->
+                <div th:if="${user.role.name() == 'BUYER' and farmerProfile == null}"
+                    class="bg-white p-5 rounded-4 border shadow-sm text-center">
+                    <div class="bg-success-subtle text-success rounded-circle d-inline-flex align-items-center justify-content-center mb-4"
+                        style="width: 80px; height: 80px; font-size: 2.5rem;">
+                        <i class="bi bi-shop"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-2">Become a Verified Khmer Market Seller</h3>
+                    <p class="text-muted mx-auto mb-4" style="max-width: 580px;">
+                        Upgrade your buyer account to a seller storefront! Sell fresh organic vegetables, fruits, rice,
+                        and agricultural produce directly to buyers across Cambodia.
+                    </p>
+
+                    <div class="row g-3 justify-content-center mb-4 text-start"
+                        style="max-width: 600px; margin: 0 auto;">
+                        <div class="col-12 col-md-6">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="fw-bold text-dark mb-1"><i
+                                        class="bi bi-cash-coin text-success me-2"></i>Direct Payouts</div>
+                                <div class="small text-muted">Receive customer payments directly into your wallet or
+                                    saved bank account.</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="fw-bold text-dark mb-1"><i
+                                        class="bi bi-shield-check text-success me-2"></i>G2G-Standard eKYC</div>
+                                <div class="small text-muted">Government ID verification ensures safety and builds
+                                    instant customer trust.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a th:href="@{/become-seller}" class="btn btn-success btn-lg rounded-pill px-5 fw-bold shadow-sm">
+                        <i class="bi bi-arrow-right-circle me-1"></i> Start Seller Verification (eKYC)
+                    </a>
+                </div>
+
+                <!-- If already applied (pending, approved, or rejected) -->
+                <div th:if="${farmerProfile != null or user.role.name() == 'FARMER'}"
+                    class="bg-white p-4 p-md-5 rounded-4 border shadow-sm">
+                    <div
+                        class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 pb-3 border-bottom mb-4">
+                        <div>
+                            <h4 class="fw-bold text-dark mb-1">
+                                <i class="bi bi-patch-check-fill text-success me-2"></i>Seller Verification Status
+                            </h4>
+                            <p class="text-muted small mb-0">Your farm identity credentials and compliance record.</p>
+                        </div>
+                        <a th:href="@{/become-seller/status}" class="btn btn-outline-success rounded-pill px-4 fw-bold">
+                            View Detailed Status &rarr;
+                        </a>
+                    </div>
+
+                    <div class="row g-4 align-items-center">
+                        <div class="col-md-7">
+                            <div class="p-4 bg-light rounded-4 border">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <span
+                                        th:if="${farmerProfile != null and farmerProfile.verificationStatus == 'PENDING'}"
+                                        class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold fs-6">
+                                        <i class="bi bi-hourglass-split me-1"></i> Application Pending Review
+                                    </span>
+                                    <span
+                                        th:if="${farmerProfile != null and farmerProfile.verificationStatus == 'APPROVED'}"
+                                        class="badge bg-success px-3 py-2 rounded-pill fw-bold fs-6">
+                                        <i class="bi bi-patch-check-fill me-1"></i> Verified Active Seller
+                                    </span>
+                                    <span
+                                        th:if="${farmerProfile != null and farmerProfile.verificationStatus == 'REJECTED'}"
+                                        class="badge bg-danger px-3 py-2 rounded-pill fw-bold fs-6">
+                                        <i class="bi bi-x-circle me-1"></i> Application Rejected
+                                    </span>
+                                </div>
+
+                                <div th:if="${farmerProfile != null}" class="d-flex flex-column gap-2 text-muted small">
+                                    <div><strong class="text-dark">Farm Name:</strong> <span
+                                            th:text="${farmerProfile.farmName}">Farm Name</span></div>
+                                    <div><strong class="text-dark">Legal Name:</strong> <span
+                                            th:text="${farmerProfile.farmerName}">Farmer Name</span></div>
+                                    <div><strong class="text-dark">Province:</strong> <span
+                                            th:text="${farmerProfile.province}">Province</span></div>
+                                    <div><strong class="text-dark">ID Document:</strong> <span
+                                            th:text="${farmerProfile.idType + ' (' + farmerProfile.idNumber + ')'}">ID</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-5 text-center text-md-end">
+                            <div th:if="${user.role.name() == 'FARMER' and user.status.name() == 'ACTIVE'}">
+                                <a th:href="@{/farmer/dashboard}"
+                                    class="btn btn-success btn-lg rounded-pill px-4 fw-bold w-100 mb-2">
+                                    <i class="bi bi-speedometer2 me-1"></i> Go to Farmer Dashboard
+                                </a>
+                                <a th:href="@{/farmer/profile}"
+                                    class="btn btn-outline-secondary rounded-pill px-4 w-100">
+                                    Edit Farm Story & Photos
+                                </a>
+                            </div>
+                            <div th:if="${user.status.name() == 'PENDING'}">
+                                <div class="alert alert-warning small text-start mb-0">
+                                    <i class="bi bi-info-circle me-1"></i> Once an admin approves your eKYC documents,
+                                    product management tools will unlock automatically.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <div th:replace="~{layout/footer :: footer}"></div>
+    <!-- Modal: Add Payment Method -->
+    <div class="modal fade" id="addPaymentMethodModal" tabindex="-1" aria-labelledby="addPaymentMethodModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold text-dark" id="addPaymentMethodModalLabel">
+                        <i class="bi bi-credit-card-2-front text-success me-2"></i>Save New Payment Method
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form th:action="@{/buyer/settings/payment-methods}" method="post" th:object="${newPaymentMethod}">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Method Category</label>
+                            <select th:field="*{methodType}" class="form-select" id="methodTypeSelect" required>
+                                <option value="BANK_ACCOUNT">Cambodian Bank Account (ABA, ACLEDA, Wing, Canadia, Bakong)
+                                </option>
+                                <option value="CREDIT_DEBIT_CARD">Debit / Credit Card (Visa, Mastercard, UnionPay)
+                                </option>
+                            </select>
+                        </div>
 
-    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Provider / Bank Name</label>
+                            <select th:field="*{provider}" class="form-select" id="providerSelect" required>
+                                <option value="ABA Bank">ABA Bank</option>
+                                <option value="ACLEDA Bank">ACLEDA Bank</option>
+                                <option value="Wing Bank">Wing Bank</option>
+                                <option value="Canadia Bank">Canadia Bank</option>
+                                <option value="Bakong Wallet">Bakong Wallet (National Bank of Cambodia)</option>
+                                <option value="Visa">Visa</option>
+                                <option value="Mastercard">Mastercard</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold" id="accountNumberLabel">Account Number / Card
+                                Number</label>
+                            <input type="text" th:field="*{accountNumber}" class="form-control"
+                                placeholder="e.g. 000 123 456 or 4111 2222 3333 4444" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Account Holder Legal Name</label>
+                            <input type="text" th:field="*{accountHolderName}" class="form-control"
+                                placeholder="e.g. CHAN SOKHA" required>
+                            <div class="form-text small">Must match the legal name on your bank account or card.</div>
+                        </div>
+
+                        <div class="mb-3" id="cardExpiryDiv" style="display: none;">
+                            <label class="form-label small fw-bold">Card Expiration (MM/YY)</label>
+                            <input type="text" th:field="*{cardExpiry}" class="form-control" placeholder="MM/YY"
+                                maxlength="5">
+                        </div>
+
+                        <div class="form-check form-switch mt-3">
+                            <input class="form-check-input" type="checkbox" role="switch" th:field="*{default}"
+                                id="isDefaultCheck">
+                            <label class="form-check-label small fw-bold" for="isDefaultCheck">Set as primary / default
+                                method</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top bg-light rounded-bottom-4">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4"
+                            data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">Save Method</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+    <script th:src="@{/js/profile.js}"></script>
 </body>
+
 </html>

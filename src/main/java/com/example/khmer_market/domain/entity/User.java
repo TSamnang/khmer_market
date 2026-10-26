@@ -57,6 +57,9 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Address> addresses = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserPaymentMethod> paymentMethods = new ArrayList<>();
+
     public User() {}
 
     public Long getId() { return id; }
@@ -110,6 +113,9 @@ public class User {
 
     public List<Address> getAddresses() { return addresses; }
     public void setAddresses(List<Address> addresses) { this.addresses = addresses; }
+
+    public List<UserPaymentMethod> getPaymentMethods() { return paymentMethods; }
+    public void setPaymentMethods(List<UserPaymentMethod> paymentMethods) { this.paymentMethods = paymentMethods; }
 
     public boolean isActive() {
         return this.status == UserStatus.ACTIVE;

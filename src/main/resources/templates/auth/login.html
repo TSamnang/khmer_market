@@ -20,8 +20,12 @@
             <span th:text="#{app.name}">Khmer Marketplace</span>
         </a>
         <div>
-            <a th:if="${#locale.language == 'km'}" th:href="@{/login(lang='en')}" class="lang-switch-btn">English</a>
-            <a th:if="${#locale.language != 'km'}" th:href="@{/login(lang='km')}" class="lang-switch-btn">ភាសាខ្មែរ</a>
+            <a th:if="${#locale.language == 'km'}" th:href="@{/login(lang='en')}" class="lang-switch-btn">
+                <img th:src="@{/images/flags/en.svg}" alt="EN" style="width: 18px; height: 12px; border-radius: 2px; vertical-align: middle; margin-right: 4px;">English
+            </a>
+            <a th:if="${#locale.language != 'km'}" th:href="@{/login(lang='km')}" class="lang-switch-btn">
+                <img th:src="@{/images/flags/kh.svg}" alt="KM" style="width: 18px; height: 12px; border-radius: 2px; vertical-align: middle; margin-right: 4px;">ភាសាខ្មែរ
+            </a>
         </div>
     </header>
 

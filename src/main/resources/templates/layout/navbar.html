@@ -56,10 +56,33 @@
                             </a>
                         </li>
 
-                        <!-- Language Switcher -->
+                        <!-- Language Switcher with Flags -->
                         <li class="nav-item d-flex align-items-center me-2">
-                            <a th:if="${#locale.language == 'km'}" th:href="@{/(lang='en')}" class="km-lang-pill" title="Switch to English">EN</a>
-                            <a th:if="${#locale.language != 'km'}" th:href="@{/(lang='km')}" class="km-lang-pill" title="ប្តូរទៅភាសាខ្មែរ">KM</a>
+                            <div class="km-lang-switcher" role="group" aria-label="Language selection">
+                                <!-- When current language is Khmer -->
+                                <th:block th:if="${#locale.language == 'km'}">
+                                    <span class="km-lang-active" title="ភាសាកំពុងប្រើ៖ ភាសាខ្មែរ">
+                                        <img th:src="@{/images/flags/kh.svg}" alt="Cambodia Flag" class="km-flag-icon">
+                                        <span>KM</span>
+                                    </span>
+                                    <a th:href="@{${currentUrl != null ? currentUrl : '/'}(lang='en')}" data-lang="en" class="km-lang-pill" title="Switch to English">
+                                        <img th:src="@{/images/flags/en.svg}" alt="UK Flag" class="km-flag-icon">
+                                        <span>EN</span>
+                                    </a>
+                                </th:block>
+
+                                <!-- When current language is English -->
+                                <th:block th:if="${#locale.language != 'km'}">
+                                    <a th:href="@{${currentUrl != null ? currentUrl : '/'}(lang='km')}" data-lang="km" class="km-lang-pill" title="ប្តូរទៅភាសាខ្មែរ">
+                                        <img th:src="@{/images/flags/kh.svg}" alt="Cambodia Flag" class="km-flag-icon">
+                                        <span>KM</span>
+                                    </a>
+                                    <span class="km-lang-active" title="Current language: English">
+                                        <img th:src="@{/images/flags/en.svg}" alt="UK Flag" class="km-flag-icon">
+                                        <span>EN</span>
+                                    </span>
+                                </th:block>
+                            </div>
                         </li>
 
                         <!-- Anonymous Links -->
@@ -99,7 +122,7 @@
                                 <li sec:authorize="hasAnyRole('BUYER', 'FARMER')"><hr class="dropdown-divider"></li>
 
                                 <!-- Farmer Options -->
-                                <li sec:authorize="hasRole('FARMER')" class="dropdown-header text-uppercase small text-muted fw-bold">Farm Store</li>
+                                <li sec:authorize="hasRole('FARMER')" class="dropdown-header text-uppercase small text-muted fw-bold" th:text="#{nav.farm_store}">Farm Store</li>
                                 <li sec:authorize="hasRole('FARMER')">
                                     <a class="dropdown-item py-2 fw-semibold text-success" th:href="@{/farmer/dashboard}">
                                         <i class="bi bi-speedometer2 me-2"></i> <span th:text="#{farmer.dashboard}">Farmer Dashboard</span>
@@ -122,7 +145,13 @@
                                 </li>
                                 <li sec:authorize="hasRole('FARMER')"><hr class="dropdown-divider"></li>
 
-                                <li sec:authorize="hasRole('FARMER')" class="dropdown-header text-uppercase small text-muted fw-bold">Customer Account</li>
+                                <!-- Become a Seller CTA for Buyers -->
+                                <li sec:authorize="hasRole('BUYER')">
+                                    <a class="dropdown-item py-2 fw-bold text-success" th:href="@{/become-seller}">
+                                        <i class="bi bi-shop me-2"></i> <span th:text="#{nav.become_seller}">Become a Seller (eKYC)</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasRole('BUYER')"><hr class="dropdown-divider"></li>
 
                                 <!-- Cart Link in Dropdown -->
                                 <li sec:authorize="hasAnyRole('BUYER', 'FARMER', 'ADMIN')">
@@ -149,15 +178,20 @@
                                     </a>
                                 </li>
                                 <li sec:authorize="hasAnyRole('BUYER', 'FARMER')">
-                                    <a class="dropdown-item py-2" th:href="@{/buyer/profile}">
-                                        <i class="bi bi-person-gear me-2"></i> <span th:text="#{nav.profile}">Profile & Password</span>
+                                    <a class="dropdown-item py-2" th:href="@{/buyer/settings?tab=payment-methods}">
+                                        <i class="bi bi-credit-card-2-front me-2"></i> <span th:text="#{nav.payment_methods}">Saved Payment Methods</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasAnyRole('BUYER', 'FARMER')">
+                                    <a class="dropdown-item py-2" th:href="@{/buyer/settings}">
+                                        <i class="bi bi-person-gear me-2"></i> <span th:text="#{nav.account_settings}">Account Settings & Profile</span>
                                     </a>
                                 </li>
 
                                 <!-- Admin Link -->
                                 <li sec:authorize="hasRole('ADMIN')">
                                     <a class="dropdown-item py-2 text-danger fw-bold" th:href="@{/admin/dashboard}">
-                                        <i class="bi bi-shield-lock me-2"></i> Admin Console
+                                        <i class="bi bi-shield-lock me-2"></i> <span th:text="#{nav.admin_console}">Admin Console</span>
                                     </a>
                                 </li>
 

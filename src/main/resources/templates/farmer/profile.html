@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
@@ -59,14 +59,31 @@
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold" th:text="#{address.province}">Province</label>
                                 <select th:field="*{province}" class="form-select" required>
-                                    <option value="Battambang">Battambang</option>
-                                    <option value="Kampot">Kampot</option>
-                                    <option value="Siem Reap">Siem Reap</option>
-                                    <option value="Kandal">Kandal</option>
-                                    <option value="Pursat">Pursat</option>
-                                    <option value="Takeo">Takeo</option>
-                                    <option value="Kampong Cham">Kampong Cham</option>
                                     <option value="Phnom Penh">Phnom Penh</option>
+                                    <option value="Banteay Meanchey">Banteay Meanchey</option>
+                                    <option value="Battambang">Battambang</option>
+                                    <option value="Kampong Cham">Kampong Cham</option>
+                                    <option value="Kampong Chhnang">Kampong Chhnang</option>
+                                    <option value="Kampong Speu">Kampong Speu</option>
+                                    <option value="Kampong Thom">Kampong Thom</option>
+                                    <option value="Kampot">Kampot</option>
+                                    <option value="Kandal">Kandal</option>
+                                    <option value="Kep">Kep</option>
+                                    <option value="Koh Kong">Koh Kong</option>
+                                    <option value="Kratie">Kratie</option>
+                                    <option value="Mondulkiri">Mondulkiri</option>
+                                    <option value="Oddar Meanchey">Oddar Meanchey</option>
+                                    <option value="Pailin">Pailin</option>
+                                    <option value="Preah Sihanouk">Preah Sihanouk</option>
+                                    <option value="Preah Vihear">Preah Vihear</option>
+                                    <option value="Prey Veng">Prey Veng</option>
+                                    <option value="Pursat">Pursat</option>
+                                    <option value="Ratanakiri">Ratanakiri</option>
+                                    <option value="Siem Reap">Siem Reap</option>
+                                    <option value="Stung Treng">Stung Treng</option>
+                                    <option value="Svay Rieng">Svay Rieng</option>
+                                    <option value="Takeo">Takeo</option>
+                                    <option value="Tboung Khmum">Tboung Khmum</option>
                                 </select>
                             </div>
                         </div>
@@ -122,7 +139,5 @@
     </main>
 
     <div th:replace="~{layout/footer :: footer}"></div>
-
-    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>

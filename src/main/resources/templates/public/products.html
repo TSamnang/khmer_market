@@ -59,14 +59,31 @@
                             <label class="form-label fw-bold small text-secondary text-uppercase" th:text="#{catalog.filter_by_province}">Province</label>
                             <select name="province" class="form-select form-select-sm">
                                 <option value="" th:text="#{catalog.all_provinces}">All Provinces</option>
-                                <option value="Battambang" th:selected="${selectedProvince == 'Battambang'}">Battambang</option>
-                                <option value="Kampot" th:selected="${selectedProvince == 'Kampot'}">Kampot</option>
-                                <option value="Siem Reap" th:selected="${selectedProvince == 'Siem Reap'}">Siem Reap</option>
-                                <option value="Kandal" th:selected="${selectedProvince == 'Kandal'}">Kandal</option>
-                                <option value="Pursat" th:selected="${selectedProvince == 'Pursat'}">Pursat</option>
-                                <option value="Takeo" th:selected="${selectedProvince == 'Takeo'}">Takeo</option>
-                                <option value="Kampong Cham" th:selected="${selectedProvince == 'Kampong Cham'}">Kampong Cham</option>
                                 <option value="Phnom Penh" th:selected="${selectedProvince == 'Phnom Penh'}">Phnom Penh</option>
+                                <option value="Banteay Meanchey" th:selected="${selectedProvince == 'Banteay Meanchey'}">Banteay Meanchey</option>
+                                <option value="Battambang" th:selected="${selectedProvince == 'Battambang'}">Battambang</option>
+                                <option value="Kampong Cham" th:selected="${selectedProvince == 'Kampong Cham'}">Kampong Cham</option>
+                                <option value="Kampong Chhnang" th:selected="${selectedProvince == 'Kampong Chhnang'}">Kampong Chhnang</option>
+                                <option value="Kampong Speu" th:selected="${selectedProvince == 'Kampong Speu'}">Kampong Speu</option>
+                                <option value="Kampong Thom" th:selected="${selectedProvince == 'Kampong Thom'}">Kampong Thom</option>
+                                <option value="Kampot" th:selected="${selectedProvince == 'Kampot'}">Kampot</option>
+                                <option value="Kandal" th:selected="${selectedProvince == 'Kandal'}">Kandal</option>
+                                <option value="Kep" th:selected="${selectedProvince == 'Kep'}">Kep</option>
+                                <option value="Koh Kong" th:selected="${selectedProvince == 'Koh Kong'}">Koh Kong</option>
+                                <option value="Kratie" th:selected="${selectedProvince == 'Kratie'}">Kratie</option>
+                                <option value="Mondulkiri" th:selected="${selectedProvince == 'Mondulkiri'}">Mondulkiri</option>
+                                <option value="Oddar Meanchey" th:selected="${selectedProvince == 'Oddar Meanchey'}">Oddar Meanchey</option>
+                                <option value="Pailin" th:selected="${selectedProvince == 'Pailin'}">Pailin</option>
+                                <option value="Preah Sihanouk" th:selected="${selectedProvince == 'Preah Sihanouk'}">Preah Sihanouk</option>
+                                <option value="Preah Vihear" th:selected="${selectedProvince == 'Preah Vihear'}">Preah Vihear</option>
+                                <option value="Prey Veng" th:selected="${selectedProvince == 'Prey Veng'}">Prey Veng</option>
+                                <option value="Pursat" th:selected="${selectedProvince == 'Pursat'}">Pursat</option>
+                                <option value="Ratanakiri" th:selected="${selectedProvince == 'Ratanakiri'}">Ratanakiri</option>
+                                <option value="Siem Reap" th:selected="${selectedProvince == 'Siem Reap'}">Siem Reap</option>
+                                <option value="Stung Treng" th:selected="${selectedProvince == 'Stung Treng'}">Stung Treng</option>
+                                <option value="Svay Rieng" th:selected="${selectedProvince == 'Svay Rieng'}">Svay Rieng</option>
+                                <option value="Takeo" th:selected="${selectedProvince == 'Takeo'}">Takeo</option>
+                                <option value="Tboung Khmum" th:selected="${selectedProvince == 'Tboung Khmum'}">Tboung Khmum</option>
                             </select>
                         </div>
 
@@ -187,7 +204,6 @@
 
     <div th:replace="~{layout/footer :: footer}"></div>
 
-    <script th:src="@{/js/bootstrap.bundle.min.js}"></script>
     <script th:src="@{/js/favorites.js}"></script>
 </body>
 </html>

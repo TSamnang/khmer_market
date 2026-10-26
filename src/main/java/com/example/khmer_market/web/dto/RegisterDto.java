@@ -41,6 +41,10 @@ public class RegisterDto {
     private String province;
     private String farmAddress;
     private String farmDescription;
+    @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
+    private java.time.LocalDate dob;
+    private String idType = "National ID Card";
+    private String idNumber;
 
     public RegisterDto() {}
 
@@ -79,6 +83,15 @@ public class RegisterDto {
 
     public String getFarmDescription() { return farmDescription; }
     public void setFarmDescription(String farmDescription) { this.farmDescription = farmDescription; }
+
+    public java.time.LocalDate getDob() { return dob; }
+    public void setDob(java.time.LocalDate dob) { this.dob = dob; }
+
+    public String getIdType() { return idType; }
+    public void setIdType(String idType) { this.idType = idType; }
+
+    public String getIdNumber() { return idNumber; }
+    public void setIdNumber(String idNumber) { this.idNumber = idNumber; }
 
     public boolean isPasswordsMatch() {
         return password != null && password.equals(confirmPassword);

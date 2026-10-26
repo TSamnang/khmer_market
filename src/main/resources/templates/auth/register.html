@@ -20,8 +20,12 @@
             <span th:text="#{app.name}">Khmer Marketplace</span>
         </a>
         <div>
-            <a th:if="${#locale.language == 'km'}" th:href="@{/register(lang='en')}" class="lang-switch-btn">English</a>
-            <a th:if="${#locale.language != 'km'}" th:href="@{/register(lang='km')}" class="lang-switch-btn">ភាសាខ្មែរ</a>
+            <a th:if="${#locale.language == 'km'}" th:href="@{/register(lang='en')}" class="lang-switch-btn">
+                <img th:src="@{/images/flags/en.svg}" alt="EN" style="width: 18px; height: 12px; border-radius: 2px; vertical-align: middle; margin-right: 4px;">English
+            </a>
+            <a th:if="${#locale.language != 'km'}" th:href="@{/register(lang='km')}" class="lang-switch-btn">
+                <img th:src="@{/images/flags/kh.svg}" alt="KM" style="width: 18px; height: 12px; border-radius: 2px; vertical-align: middle; margin-right: 4px;">ភាសាខ្មែរ
+            </a>
         </div>
     </header>
 
@@ -133,25 +137,71 @@
 
                 <!-- Farmer Specific Fields -->
                 <div id="farmer-extra-fields" style="display: none; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 18px; margin-bottom: 20px;">
-                    <div style="font-size: 13px; color: #b45309; margin-bottom: 14px; font-weight: 600;" th:text="#{auth.register.farmer_pending_notice}">
-                        Note: Farmer accounts require administrative verification before publishing products.
+                    <div style="font-size: 13px; color: #b45309; margin-bottom: 14px; font-weight: 600;">
+                        <i class="bi bi-shield-exclamation me-1"></i> Note: Seller accounts require G2G-standard identity verification (eKYC) before listing products.
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div class="form-group">
-                            <label for="farmName" class="form-label" th:text="#{auth.register.farm_name}">Farm Name</label>
-                            <input type="text" id="farmName" th:field="*{farmName}" class="form-input">
+                            <label for="farmName" class="form-label" th:text="#{auth.register.farm_name}">Farm / Business Name</label>
+                            <input type="text" id="farmName" th:field="*{farmName}" class="form-input" placeholder="e.g. Battambang Green Farm">
                         </div>
 
                         <div class="form-group">
-                            <label for="province" class="form-label" th:text="#{auth.register.province}">Province</label>
-                            <input type="text" id="province" th:field="*{province}" class="form-input" placeholder="e.g. Battambang, Kampong Cham">
+                            <label for="province" class="form-label" th:text="#{auth.register.province}">Cambodian Province</label>
+                            <select id="province" th:field="*{province}" class="form-input" style="height: 44px;">
+                                <option value="Phnom Penh">Phnom Penh</option>
+                                <option value="Banteay Meanchey">Banteay Meanchey</option>
+                                <option value="Battambang">Battambang</option>
+                                <option value="Kampong Cham">Kampong Cham</option>
+                                <option value="Kampong Chhnang">Kampong Chhnang</option>
+                                <option value="Kampong Speu">Kampong Speu</option>
+                                <option value="Kampong Thom">Kampong Thom</option>
+                                <option value="Kampot">Kampot</option>
+                                <option value="Kandal">Kandal</option>
+                                <option value="Kep">Kep</option>
+                                <option value="Koh Kong">Koh Kong</option>
+                                <option value="Kratie">Kratie</option>
+                                <option value="Mondulkiri">Mondulkiri</option>
+                                <option value="Oddar Meanchey">Oddar Meanchey</option>
+                                <option value="Pailin">Pailin</option>
+                                <option value="Preah Sihanouk">Preah Sihanouk</option>
+                                <option value="Preah Vihear">Preah Vihear</option>
+                                <option value="Prey Veng">Prey Veng</option>
+                                <option value="Pursat">Pursat</option>
+                                <option value="Ratanakiri">Ratanakiri</option>
+                                <option value="Siem Reap">Siem Reap</option>
+                                <option value="Stung Treng">Stung Treng</option>
+                                <option value="Svay Rieng">Svay Rieng</option>
+                                <option value="Takeo">Takeo</option>
+                                <option value="Tboung Khmum">Tboung Khmum</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- eKYC Fields (G2G Standard) -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 10px;">
+                        <div class="form-group">
+                            <label for="farmer-dob" class="form-label">Date of Birth (18+)</label>
+                            <input type="date" id="farmer-dob" th:field="*{dob}" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="farmer-id-type" class="form-label">ID Document Type</label>
+                            <select id="farmer-id-type" th:field="*{idType}" class="form-input" style="height: 44px;">
+                                <option value="National ID Card">National ID Card</option>
+                                <option value="Passport">Passport</option>
+                                <option value="Driver's License">Driver's License</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="farmer-id-number" class="form-label">ID Document Number</label>
+                            <input type="text" id="farmer-id-number" th:field="*{idNumber}" class="form-input" placeholder="e.g. 010293847">
                         </div>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label for="farmDescription" class="form-label" th:text="#{auth.register.farm_description}">About your farm</label>
-                        <textarea id="farmDescription" th:field="*{farmDescription}" class="form-input" rows="2"></textarea>
+                        <label for="farmDescription" class="form-label" th:text="#{auth.register.farm_description}">About your farm & produce</label>
+                        <textarea id="farmDescription" th:field="*{farmDescription}" class="form-input" rows="2" placeholder="Briefly describe what produce you cultivate..."></textarea>
                     </div>
                 </div>
 
